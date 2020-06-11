@@ -15,4 +15,4 @@ script:
   - build-wrapper-linux-x86-64 --out-dir bw-output ./configure && make && make check
   # And finally run the SonarCloud analysis - read the "sonar-project.properties"
   # file to see the specific configuration
-  - sonar-scanner -Dsonar.cfamily.build-wrapper-output=bw-output
+  - sonar-scanner -X -Dsonar.cfamily.build-wrapper-output=bw-output
