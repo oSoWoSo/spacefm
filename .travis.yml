@@ -9,10 +9,11 @@ addons:
         secure: "TsouTSfzsIuLl3ynb5xI1fFun8GV8139JGwSnFOpNwTZTkcvZzmj9zBszvDdaq6V1Y6q9cxWhdrT0CDIAq2RgcoIruedqaoTWUddCJdh2bcYnK92bDyeuolx+Rx1wvM7MILc4VHOi9V4pmLjzCxrPzCfQUxdQcgbfjqdVdztK4SQw8T72zL8ayo/bE84ghc/3S50El05hHw0WMY3/nqUXjbzPOLhBbCADQp74L6QZeCOK6k56UU8878s4bloLnZBpNP5Qq76deQS+4RMvKQmggNouGy79oGwpSyi/mTbVQii3OaoPEVmq8h189rAIDJsVcdYg/GrMxUezWmIcoFBTLCghkodyRTAR1esf2fLJBssyxJ3ywJujpN/0DKzpQgBTkahDFYSsLA2qoMj8UXStOYeC6RzPjw3PSol08bO3E7zSzCRhenv3CxSY7Ud7VussOx9V+pPJIZydVoXK6ILObwaWa6FMvcwqdrsDEwAPp5oXBfeTIrWZVJH+IA4jWcuN091renrRd217Q0MChzf+/8/X2l2c81U1XSxY4KZtvRM4YUaWZ4MUrwcY24JYoJoEuhkxH8eN/ZTm3GlQkqEf8nmDpxU/Su0m0b6mnZPcfqIbS4DAOMBS5MdCCRSEtA1rFRP1NXVLNkKDzTXI9i5eK/R+zP3ZzIrKJ47DXgjUyg="
 
 script:
+  - autoreconf --install
   - ./configure
 # Wraps the compilation with the Build Wrapper to generate configuration (used
   # later by the SonarScanner) into the "bw-output" folder
-  - build-wrapper-linux-x86-64 --out-dir bw-output make clean
+  - build-wrapper-linux-x86-64 --out-dir bw-output make clean all
   # And finally run the SonarCloud analysis - read the "sonar-project.properties"
   # file to see the specific configuration
   - sonar-scanner -X -Dsonar.cfamily.build-wrapper-output=bw-output
