@@ -20,7 +20,6 @@
 #include <string.h>
 
 /* socket is used to keep single instance */
-#include <sys/sysmacros.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -1445,8 +1444,6 @@ int main ( int argc, char *argv[] )
 #ifdef HAVE_SN
         printf( "SNOTIFY " );
 #endif
-        printf( "\n" );
-        printf("Modified by lowlevel <vinicio.valbuena89@gmail.com>");
         printf( "\n" );
         return 0;
     }

@@ -1,11 +1,11 @@
 /*
  * SpaceFM settings.c
- *
+ * 
  * Copyright (C) 2015 IgnorantGuru <ignorantguru@gmx.com>
  * Copyright (C) 2006 Hong Jen Yee (PCMan) <pcman.tw (AT) gmail.com>
- *
+ * 
  * License: See COPYING file
- *
+ * 
 */
 
 #ifdef HAVE_CONFIG_H
@@ -113,28 +113,6 @@ char* settings_shared_tmp_dir = NULL;
 char* settings_user_tmp_dir = NULL;
 XSetContext* xset_context = NULL;
 XSet* book_icon_set_cached = NULL;
-
-// cache these for speed in event handlers
-XSet* evt_win_focus = NULL;
-XSet* evt_win_move = NULL;
-XSet* evt_win_click = NULL;
-XSet* evt_win_key = NULL;
-XSet* evt_win_close = NULL;
-XSet* evt_pnl_show = NULL;
-XSet* evt_pnl_focus = NULL;
-XSet* evt_pnl_sel = NULL;
-XSet* evt_tab_new = NULL;
-XSet* evt_tab_chdir = NULL;
-XSet* evt_tab_focus = NULL;
-XSet* evt_tab_close = NULL;
-XSet* evt_device = NULL;
-
-// instance-wide command history
-GList* xset_cmd_history = NULL;
-
-// These will contain the su and gsu settings from /etc/spacefm/spacefm.conf
-char* settings_terminal_su = NULL;
-char* settings_graphical_su = NULL;
 
 // delayed session saving
 guint xset_autosave_timer = 0;
@@ -274,7 +252,7 @@ static void parse_general_settings( char* line )
     else if ( 0 == strcmp( name, "tool_icon_size" ) )
     {
         app_settings.tool_icon_size = atoi( value );
-        if( app_settings.tool_icon_size < 0 ||
+        if( app_settings.tool_icon_size < 0 || 
                             app_settings.tool_icon_size > GTK_ICON_SIZE_DIALOG )
             app_settings.tool_icon_size = tool_icon_size_default;
     }
@@ -458,7 +436,7 @@ static void parse_conf( const char* etc_path, char* line )
     *sep = '\0';
     char* sname = g_strstrip( name );
     char* svalue = g_strdup( g_strstrip( value ) );
-
+    
     if ( !( sname && sname[0] && svalue && svalue[0] ) )
     {}
     else if ( strpbrk( svalue, " $%\\()&#|:;?<>{}[]*\"'" ) )
@@ -514,11 +492,11 @@ void load_conf()
         fclose( file );
     }
     g_free( etc_path );
-
+    
     // set tmp dir
     if ( !settings_tmp_dir )
         settings_tmp_dir = g_strdup( DEFAULT_TMP_DIR );
-}
+}        
 
 void swap_menu_label( const char* set_name, const char* old_name,
                                                         const char* new_name )
@@ -542,7 +520,7 @@ void move_attached_to_builtin( const char* removed_name, const char* move_to_nam
     /* For upgrades only: A built-in menu item (removed_name) has been removed,
      * so move custom menu items attached to the removed item to another item.
      * Leave removed item data intact in case of downgrade. */
-
+    
     XSet* set_to = xset_is( move_to_name );
     if ( !set_to )
     {
@@ -550,7 +528,7 @@ void move_attached_to_builtin( const char* removed_name, const char* move_to_nam
                                                             move_to_name );
         return;
     }
-
+    
     GList* l;
     XSet* set_move;
     XSet* set_to_next;
@@ -563,14 +541,14 @@ void move_attached_to_builtin( const char* removed_name, const char* move_to_nam
             set_move = l->data;
             if ( set_move->lock )  // failsafe
                 return;
-
+            
             while ( set_move )
             {
                 xset_custom_remove( set_move );
-
+                
                 g_free( set_move->prev );
                 set_move->prev = g_strdup( set_to->name );
-
+                
                 if ( set_move->next )
                 {
                     set_move_next = xset_get( set_move->next );
@@ -581,7 +559,7 @@ void move_attached_to_builtin( const char* removed_name, const char* move_to_nam
                     set_move_next = NULL;
                 g_free( set_move->next );
                 set_move->next = g_strdup( set_to->next );
-
+                
                 if ( set_to->next )
                 {
                     set_to_next = xset_get( set_to->next );
@@ -591,7 +569,7 @@ void move_attached_to_builtin( const char* removed_name, const char* move_to_nam
                 }
                 g_free( set_to->next );
                 set_to->next = g_strdup( set_move->name );
-
+                
                 if ( set_to->tool )
                 {
                     if ( set_move->tool > XSET_TOOL_CUSTOM )
@@ -600,7 +578,7 @@ void move_attached_to_builtin( const char* removed_name, const char* move_to_nam
                 }
                 else
                     set_move->tool = XSET_TOOL_NOT;
-
+                
                 set_to = set_move;
                 set_move = set_move_next;
             }
@@ -618,7 +596,7 @@ void load_settings( char* config_dir )
     SettingsParseFunc func = NULL;
     XSet* set;
     char* str;
-
+    
     xset_cmd_history = NULL;
     app_settings.load_saved_tabs = TRUE;
     if ( config_dir )

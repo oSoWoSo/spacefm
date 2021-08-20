@@ -120,7 +120,7 @@ const char* xset_get_user_tmp_dir();
 ///////////////////////////////////////////////////////////////////////////////
 //MOD extra settings below
 
-extern GList* xsets;
+GList* xsets;
 
 enum {
     XSET_B_UNSET,
@@ -278,7 +278,7 @@ typedef struct
     char* context;
     char tool;              // 0=not 1=true 2=false
     gboolean lock;          // not saved, default true
-
+    
     // Custom Command ( !lock )
     char* prev;
     char* parent;
@@ -301,7 +301,7 @@ typedef struct
     gboolean plugin_top;
     char* plug_name;
     char* plug_dir;
-
+    
 } XSet;
 
 typedef struct
@@ -311,22 +311,22 @@ typedef struct
 } XMenuItem;
 
 // cache these for speed in event handlers
-extern XSet* evt_win_focus;
-extern XSet* evt_win_move;
-extern XSet* evt_win_click;
-extern XSet* evt_win_key;
-extern XSet* evt_win_close;
-extern XSet* evt_pnl_show;
-extern XSet* evt_pnl_focus;
-extern XSet* evt_pnl_sel;
-extern XSet* evt_tab_new;
-extern XSet* evt_tab_chdir;
-extern XSet* evt_tab_focus;
-extern XSet* evt_tab_close;
-extern XSet* evt_device;
+XSet* evt_win_focus;
+XSet* evt_win_move;
+XSet* evt_win_click;
+XSet* evt_win_key;
+XSet* evt_win_close;
+XSet* evt_pnl_show;
+XSet* evt_pnl_focus;
+XSet* evt_pnl_sel;
+XSet* evt_tab_new;
+XSet* evt_tab_chdir;
+XSet* evt_tab_focus;
+XSet* evt_tab_close;
+XSet* evt_device;
 
 // instance-wide command history
-extern GList* xset_cmd_history;
+GList* xset_cmd_history;
 
 static const char* terminal_programs[] =  //for pref-dialog.c
 {
@@ -374,8 +374,8 @@ static const char* gsu_commands[] = // order and contents must match prefdlg.ui
 };
 
 // These will contain the su and gsu settings from /etc/spacefm/spacefm.conf
-extern char* settings_terminal_su;
-extern char* settings_graphical_su;
+char* settings_terminal_su;
+char* settings_graphical_su;
 
 typedef struct
 {

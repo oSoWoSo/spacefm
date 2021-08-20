@@ -5,7 +5,6 @@
 
 G_BEGIN_DECLS
 
-
 enum {
     CONTEXT_SHOW,
     CONTEXT_ENABLE,
