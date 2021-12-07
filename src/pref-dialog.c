@@ -24,7 +24,7 @@
 #include "settings.h"
 #include "main-window.h"
 
-#include "extern.h"
+#include "extern.hxx"
 
 #include "ptk/ptk-utils.h"
 #include "ptk/ptk-file-browser.h"

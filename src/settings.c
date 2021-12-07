@@ -33,7 +33,7 @@
 #include "item-prop.h"
 
 #include "autosave.hxx"
-#include "extern.h"
+#include "extern.hxx"
 #include "utils.hxx"
 
 #include "vfs/vfs-app-desktop.h"

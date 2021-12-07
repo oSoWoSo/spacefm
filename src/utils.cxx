@@ -9,7 +9,7 @@
 #include <fcntl.h>
 
 #include "settings.h"
-#include "extern.h"
+#include "extern.hxx"
 
 #include "utils.hxx"
 
