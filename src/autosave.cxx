@@ -4,7 +4,7 @@
  *
  */
 
-#include "settings.h"
+#include "settings.hxx"
 
 #include "autosave.hxx"
 

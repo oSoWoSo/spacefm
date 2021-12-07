@@ -42,7 +42,7 @@
 #include "pref-dialog.hxx"
 #include "ptk/ptk-file-menu.h"
 
-#include "settings.h"
+#include "settings.hxx"
 #include "item-prop.hxx"
 #include "find-files.hxx"
 

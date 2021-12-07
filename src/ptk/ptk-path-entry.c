@@ -14,7 +14,7 @@
 #include <gdk/gdkkeysyms.h>
 
 #include <string.h>
-#include "settings.h"
+#include "settings.hxx"
 #include "main-window.h"
 #include <glib/gi18n.h>
 

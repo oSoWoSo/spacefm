@@ -48,7 +48,7 @@
 
 #include "find-files.hxx"
 #include "pref-dialog.hxx"
-#include "settings.h"
+#include "settings.hxx"
 
 #include "utils.hxx"
 

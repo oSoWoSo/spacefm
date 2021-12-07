@@ -31,7 +31,7 @@
 
 #include "ptk-file-browser.h"
 
-#include "settings.h"
+#include "settings.hxx"
 
 #include "ptk-utils.h"
 #include "ptk-file-task.h"

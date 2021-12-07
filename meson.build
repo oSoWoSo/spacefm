@@ -139,7 +139,7 @@ sources = [
   'src/main.c',
   'src/main-window.c',
   'src/pref-dialog.cxx',
-  'src/settings.c',
+  'src/settings.cxx',
   'src/spacefm.cxx',
   'src/utils.cxx',
 

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "settings.h"
+#include "settings.hxx"
 
 G_BEGIN_DECLS
 

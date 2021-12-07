@@ -28,7 +28,7 @@
 #include <errno.h>
 
 #include "vfs-dir.h"
-#include "settings.h"
+#include "settings.hxx"
 #include <sys/wait.h>
 #include "main-window.h"
 #include "vfs-volume.h"

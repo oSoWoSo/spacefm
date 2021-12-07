@@ -39,7 +39,7 @@
 #include "../vfs/vfs-app-desktop.h"
 #include "../vfs/vfs-execute.h"
 
-#include "settings.h"
+#include "settings.hxx"
 #include "ptk-handler.h"
 #include "utils.hxx"
 

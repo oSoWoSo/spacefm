@@ -30,7 +30,7 @@
 #include "ptk-handler.h"
 #include "ptk-clipboard.h"
 #include "ptk-app-chooser.h"
-#include "settings.h"
+#include "settings.hxx"
 #include "item-prop.hxx"
 #include "main-window.h"
 #include "ptk-location-view.h"

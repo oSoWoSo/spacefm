@@ -19,7 +19,7 @@
 #include "ptk-file-task.h"
 #include "ptk-handler.h"
 
-#include "settings.h"
+#include "settings.hxx"
 
 #include "autosave.hxx"
 #include "utils.hxx"

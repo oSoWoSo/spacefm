@@ -8,7 +8,7 @@
 
 #include <fcntl.h>
 
-#include "settings.h"
+#include "settings.hxx"
 #include "extern.hxx"
 
 #include "utils.hxx"
