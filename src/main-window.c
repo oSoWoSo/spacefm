@@ -47,7 +47,7 @@
 #include "find-files.h"
 
 #include "autosave.hxx"
-#include "utils.h"
+#include "utils.hxx"
 
 /* FIXME: statvfs support should be moved to src/vfs */
 #include <sys/statvfs.h>

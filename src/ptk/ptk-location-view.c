@@ -33,7 +33,7 @@
 
 #include "../vfs/vfs-utils.h"
 
-#include "utils.h"
+#include "utils.hxx"
 
 static GtkTreeModel* model = NULL;
 static int n_vols = 0;

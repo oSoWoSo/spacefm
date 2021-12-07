@@ -35,7 +35,7 @@
 
 #include <linux/limits.h>
 
-#include "utils.h"
+#include "utils.hxx"
 
 const mode_t chmod_flags[] = {S_IRUSR,
                               S_IWUSR,

@@ -19,7 +19,7 @@
 #include <exo/exo.h>
 
 #include "item-prop.h"
-#include "utils.h"
+#include "utils.hxx"
 
 #include "ptk/ptk-app-chooser.h"
 

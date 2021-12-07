@@ -18,7 +18,7 @@
 #include "main-window.h"
 #include <glib/gi18n.h>
 
-#include "utils.h"
+#include "utils.hxx"
 #include "ptk-handler.h"
 #include "ptk-location-view.h"
 

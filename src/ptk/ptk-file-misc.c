@@ -41,7 +41,7 @@
 
 #include "settings.h"
 #include "ptk-handler.h"
-#include "utils.h"
+#include "utils.hxx"
 
 typedef struct ParentInfo
 {

@@ -36,7 +36,7 @@
 #include "ptk-location-view.h"
 #include "ptk-file-list.h"
 
-#include "utils.h"
+#include "utils.hxx"
 
 static bool on_app_button_press(GtkWidget* item, GdkEventButton* event, PtkFileMenu* data);
 static bool app_menu_keypress(GtkWidget* widget, GdkEventKey* event, PtkFileMenu* data);

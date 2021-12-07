@@ -49,7 +49,7 @@
 #include "ptk-path-entry.h"
 #include "main-window.h"
 
-#include "utils.h"
+#include "utils.hxx"
 
 static void ptk_file_browser_class_init(PtkFileBrowserClass* klass);
 static void ptk_file_browser_init(PtkFileBrowser* file_browser);

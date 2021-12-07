@@ -34,7 +34,7 @@
 
 #include "autosave.hxx"
 #include "extern.h"
-#include "utils.h"
+#include "utils.hxx"
 
 #include "vfs/vfs-app-desktop.h"
 #include "vfs/vfs-utils.h"

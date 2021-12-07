@@ -23,7 +23,7 @@
 #include "ptk-handler.h"
 
 #include "autosave.hxx"
-#include "utils.h"
+#include "utils.hxx"
 
 #define MOUNT_EXAMPLE                                                                            \
     "# Enter mount command or leave blank for auto:\n\n\n# # Examples: (remove # to enable a "   \

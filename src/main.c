@@ -50,7 +50,7 @@
 #include "pref-dialog.h"
 #include "settings.h"
 
-#include "utils.h"
+#include "utils.hxx"
 
 #include "cust-dialog.h"
 

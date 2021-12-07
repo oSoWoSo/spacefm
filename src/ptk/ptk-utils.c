@@ -18,7 +18,7 @@
 #include <gdk/gdkkeysyms.h>
 
 #include "settings.h"
-#include "utils.h"
+#include "utils.hxx"
 
 void ptk_show_error(GtkWindow* parent, const char* title, const char* message)
 {
