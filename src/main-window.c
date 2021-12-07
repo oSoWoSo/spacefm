@@ -39,7 +39,7 @@
 #include "main-window.h"
 #include "ptk/ptk-utils.h"
 
-#include "pref-dialog.h"
+#include "pref-dialog.hxx"
 #include "ptk/ptk-file-menu.h"
 
 #include "settings.h"

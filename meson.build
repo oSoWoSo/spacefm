@@ -138,7 +138,7 @@ sources = [
   'src/item-prop.cxx',
   'src/main.c',
   'src/main-window.c',
-  'src/pref-dialog.c',
+  'src/pref-dialog.cxx',
   'src/settings.c',
   'src/spacefm.cxx',
   'src/utils.cxx',

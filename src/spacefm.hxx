@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <glib.h>
+
 G_BEGIN_DECLS
 
 void init_window_ref_counter(bool daemon_mode);

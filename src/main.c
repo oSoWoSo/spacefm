@@ -47,7 +47,7 @@
 #include "ptk/ptk-location-view.h"
 
 #include "find-files.hxx"
-#include "pref-dialog.h"
+#include "pref-dialog.hxx"
 #include "settings.h"
 
 #include "utils.hxx"
