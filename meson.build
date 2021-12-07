@@ -135,7 +135,7 @@ dep_gtk = dependency('gtk+-3.0')
 sources = [
   'src/autosave.cxx',
   'src/find-files.cxx',
-  'src/item-prop.c',
+  'src/item-prop.cxx',
   'src/main.c',
   'src/main-window.c',
   'src/pref-dialog.c',

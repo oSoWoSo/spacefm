@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <stdbool.h>
-
 #include "settings.h"
 
 G_BEGIN_DECLS

@@ -43,7 +43,7 @@
 #include "ptk/ptk-file-menu.h"
 
 #include "settings.h"
-#include "item-prop.h"
+#include "item-prop.hxx"
 #include "find-files.hxx"
 
 #include "autosave.hxx"

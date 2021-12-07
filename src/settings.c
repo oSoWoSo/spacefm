@@ -30,7 +30,7 @@
 
 #include "settings.h"
 #include "main-window.h"
-#include "item-prop.h"
+#include "item-prop.hxx"
 
 #include "autosave.hxx"
 #include "extern.hxx"
