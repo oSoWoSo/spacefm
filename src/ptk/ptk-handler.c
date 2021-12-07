@@ -22,7 +22,7 @@
 
 #include "ptk-handler.h"
 
-#include "autosave.h"
+#include "autosave.hxx"
 #include "utils.h"
 
 #define MOUNT_EXAMPLE                                                                            \

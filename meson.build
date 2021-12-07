@@ -133,7 +133,7 @@ dep_gtk = dependency('gtk+-3.0')
 
 
 sources = [
-  'src/autosave.c',
+  'src/autosave.cxx',
   'src/cust-dialog.c',
   'src/find-files.c',
   'src/go-dialog.c',
@@ -144,9 +144,11 @@ sources = [
   'src/settings.c',
   'src/spacefm.c',
   'src/utils.c',
+
   'src/mime-type/mime-action.c',
   'src/mime-type/mime-cache.c',
   'src/mime-type/mime-type.c',
+
   'src/ptk/ptk-app-chooser.c',
   'src/ptk/ptk-clipboard.c',
   'src/ptk/ptk-dir-tree.c',
@@ -162,6 +164,7 @@ sources = [
   'src/ptk/ptk-location-view.c',
   'src/ptk/ptk-path-entry.c',
   'src/ptk/ptk-utils.c',
+
   'src/vfs/vfs-app-desktop.c',
   'src/vfs/vfs-async-task.c',
   'src/vfs/vfs-dir.c',
@@ -197,7 +200,7 @@ spacefm = build_target(
     lib_xxhash,
   ],
   c_pch:   'src/pch/c_pch.h',
-  # cpp_pch: 'src/pch/cxx_pch.hxx',
+  cpp_pch: 'src/pch/cxx_pch.hxx',
 )
 
 install_data('src/spacefm-auth', install_dir : bindir)

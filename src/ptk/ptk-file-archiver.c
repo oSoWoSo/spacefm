@@ -21,7 +21,7 @@
 
 #include "settings.h"
 
-#include "autosave.h"
+#include "autosave.hxx"
 #include "utils.h"
 
 // Archive handlers treeview model enum

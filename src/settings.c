@@ -32,7 +32,7 @@
 #include "main-window.h"
 #include "item-prop.h"
 
-#include "autosave.h"
+#include "autosave.hxx"
 #include "extern.h"
 #include "utils.h"
 
