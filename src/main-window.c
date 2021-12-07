@@ -9,7 +9,7 @@
 
 #include <libintl.h>
 
-#include "spacefm.h"
+#include "spacefm.hxx"
 #include "private.h"
 
 #include <gtk/gtk.h>

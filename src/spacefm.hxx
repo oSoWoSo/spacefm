@@ -21,10 +21,6 @@
 
 #pragma once
 
-#include <stdbool.h>
-
-#include <gtk/gtk.h>
-
 G_BEGIN_DECLS
 
 void init_window_ref_counter(bool daemon_mode);

@@ -142,7 +142,7 @@ sources = [
   'src/main-window.c',
   'src/pref-dialog.c',
   'src/settings.c',
-  'src/spacefm.c',
+  'src/spacefm.cxx',
   'src/utils.cxx',
 
   'src/mime-type/mime-action.c',

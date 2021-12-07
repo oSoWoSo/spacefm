@@ -32,7 +32,7 @@
 
 #include "main-window.h"
 
-#include "spacefm.h"
+#include "spacefm.hxx"
 
 #include "vfs/vfs-file-info.h"
 #include "vfs/vfs-mime-type.h"

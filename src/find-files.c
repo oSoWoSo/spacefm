@@ -35,7 +35,7 @@
 
 #include <exo/exo.h>
 
-#include "spacefm.h"
+#include "spacefm.hxx"
 
 #include "vfs/vfs-dir.h"
 #include "vfs/vfs-file-info.h"

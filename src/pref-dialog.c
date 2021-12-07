@@ -11,7 +11,7 @@
 
 #include <stdbool.h>
 
-#include "spacefm.h"
+#include "spacefm.hxx"
 
 #include <string.h>
 #include <gtk/gtk.h>
