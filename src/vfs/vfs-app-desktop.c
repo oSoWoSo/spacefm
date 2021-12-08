@@ -16,7 +16,7 @@
 
 #include <string.h>
 
-#include "vfs-execute.h"
+#include "vfs-execute.hxx"
 
 #include "vfs-utils.hxx"
 

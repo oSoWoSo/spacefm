@@ -162,7 +162,7 @@ sources = [
   'src/vfs/vfs-app-desktop.c',
   'src/vfs/vfs-async-task.c',
   'src/vfs/vfs-dir.c',
-  'src/vfs/vfs-execute.c',
+  'src/vfs/vfs-execute.cxx',
   'src/vfs/vfs-file-info.c',
   'src/vfs/vfs-file-monitor.cxx',
   'src/vfs/vfs-file-task.cxx',

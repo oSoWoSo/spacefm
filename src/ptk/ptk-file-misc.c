@@ -36,7 +36,7 @@
 #include <gdk/gdkkeysyms.h>
 
 #include "../vfs/vfs-app-desktop.h"
-#include "../vfs/vfs-execute.h"
+#include "../vfs/vfs-execute.hxx"
 
 #include "settings.hxx"
 #include "ptk-handler.h"

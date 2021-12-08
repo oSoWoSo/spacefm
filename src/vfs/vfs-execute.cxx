@@ -10,10 +10,6 @@
  *
  */
 
-#include <stdbool.h>
-
-#include "vfs-execute.h"
-
 #ifdef HAVE_SN
 /* FIXME: Startup notification may cause problems */
 #define SN_API_NOT_YET_FROZEN
@@ -24,7 +20,7 @@
 #include <time.h>
 #endif
 
-#include <string.h>
+#include "vfs-execute.hxx"
 
 #ifdef HAVE_SN
 static bool sn_timeout(void* user_data)

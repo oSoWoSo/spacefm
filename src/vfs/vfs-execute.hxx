@@ -12,8 +12,6 @@
 
 #pragma once
 
-#include <stdbool.h>
-
 #include <glib.h>
 #include <gdk/gdk.h>
 
