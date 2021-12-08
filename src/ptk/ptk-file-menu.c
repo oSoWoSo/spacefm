@@ -33,7 +33,7 @@
 #include "item-prop.hxx"
 #include "main-window.h"
 #include "ptk-location-view.h"
-#include "ptk-file-list.h"
+#include "ptk-file-list.hxx"
 
 #include "utils.hxx"
 

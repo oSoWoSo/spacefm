@@ -149,7 +149,7 @@ sources = [
   'src/ptk/ptk-dir-tree-view.cxx',
   'src/ptk/ptk-file-archiver.cxx',
   'src/ptk/ptk-file-browser.c',
-  'src/ptk/ptk-file-list.c',
+  'src/ptk/ptk-file-list.cxx',
   'src/ptk/ptk-file-menu.c',
   'src/ptk/ptk-file-misc.c',
   'src/ptk/ptk-file-properties.c',

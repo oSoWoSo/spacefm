@@ -9982,7 +9982,7 @@ static void xset_defaults()
         set = xset_get_panel(p, "sort_extra");
         set->b = XSET_B_TRUE;                         // sort_natural
         set->x = g_strdup_printf("%d", XSET_B_FALSE); // sort_case
-        set->y = g_strdup("1");                      // PTK_LIST_SORT_DIR_FIRST from ptk-file-list.h
+        set->y = g_strdup("1"); // PTK_LIST_SORT_DIR_FIRST from ptk-file-list.hxx
         set->z = g_strdup_printf("%d", XSET_B_TRUE); // sort_hidden_first
 
         set = xset_set_panel(p, "book_fol", "lbl", "Follow _Dir");

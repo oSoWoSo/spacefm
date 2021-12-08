@@ -40,7 +40,7 @@
 #include "ptk-dir-tree-view.hxx"
 #include "ptk-dir-tree.hxx"
 
-#include "ptk-file-list.h"
+#include "ptk-file-list.hxx"
 
 #include "ptk-clipboard.hxx"
 
