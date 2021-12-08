@@ -17,7 +17,11 @@
 
 // GTK
 #include <gtk/gtk.h>
+
+// GDK
+#include <gdk/gdk.h>
 #include <gdk/gdkkeysyms.h>
 
 // GLIB
 #include <glib.h>
+#include <glib-object.h>
