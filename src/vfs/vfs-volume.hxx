@@ -1,5 +1,5 @@
 /*
- * SpaceFM vfs-volume.h
+ * SpaceFM vfs-volume.hxx
  *
  * Copyright (C) 2014 IgnorantGuru <ignorantguru@gmx.com>
  * Copyright (C) 2006 Hong Jen Yee (PCMan) <pcman.tw (AT) gmail.com>
@@ -10,10 +10,8 @@
 
 #pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <glib.h>
+
 #include "settings.hxx"
 
 G_BEGIN_DECLS

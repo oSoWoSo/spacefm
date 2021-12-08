@@ -10,37 +10,18 @@
  * device info code uses code excerpts from freedesktop's udisks v1.0.4
  */
 
-#include <stdbool.h>
-#include <stdint.h>
-
-#include "vfs-volume.h"
-#include <glib.h>
-#include <glib/gstdio.h>
-
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <linux/limits.h>
-
 #include <libudev.h>
 #include <fcntl.h>
-#include <errno.h>
-
-#include <sys/types.h>
-#include <unistd.h>
-
 #include <linux/kdev_t.h>
-#include <sys/sysmacros.h>
 
-#include "vfs-file-info.h"
 #include "main-window.h"
 
-#include "../ptk/ptk-file-task.h"
 #include "../ptk/ptk-handler.h"
 #include "../ptk/ptk-location-view.h"
 
 #include "utils.hxx"
+
+#include "vfs-volume.hxx"
 
 #define MOUNTINFO "/proc/self/mountinfo"
 #define MTAB      "/proc/mounts"
@@ -734,15 +715,15 @@ static void info_drive_properties(device_t* device)
         g_strstrip(type);
         if (!g_strcmp0(type, "MMC"))
         {
-            g_ptr_array_add(media_compat_array, "flash_mmc");
+            g_ptr_array_add(media_compat_array, (void*)"flash_mmc");
         }
         else if (!g_strcmp0(type, "SD"))
         {
-            g_ptr_array_add(media_compat_array, "flash_sd");
+            g_ptr_array_add(media_compat_array, (void*)"flash_sd");
         }
         else if (!g_strcmp0(type, "SDHC"))
         {
-            g_ptr_array_add(media_compat_array, "flash_sdhc");
+            g_ptr_array_add(media_compat_array, (void*)"flash_sdhc");
         }
         g_free(type);
     }
@@ -2436,7 +2417,9 @@ int split_network_url(const char* url, netmount_t** netmount)
     }
     while (xurl[0] == '/')
         xurl++;
-    char* trim_url = g_strdup(xurl);
+
+    char* trim_url;
+    trim_url = g_strdup(xurl);
 
     // user:pass
     if ((str = strchr(xurl, '@')))
@@ -3821,7 +3804,8 @@ bool vfs_volume_init()
         goto finish_;
     }
 
-    int ufd = udev_monitor_get_fd(umonitor);
+    int ufd;
+    ufd = udev_monitor_get_fd(umonitor);
     if (ufd == 0)
     {
         printf("spacefm: cannot get udev monitor socket file descriptor\n");
@@ -3833,12 +3817,13 @@ bool vfs_volume_init()
     g_io_channel_set_flags(uchannel, G_IO_FLAG_NONBLOCK, NULL);
     g_io_channel_set_close_on_unref(uchannel, TRUE);
     g_io_add_watch(uchannel,
-                   G_IO_IN | G_IO_HUP, // | G_IO_NVAL | G_IO_ERR,
+                   GIOCondition(G_IO_IN | G_IO_HUP), // | G_IO_NVAL | G_IO_ERR,
                    (GIOFunc)cb_udev_monitor_watch,
                    NULL);
 
     // start mount monitor
-    GError* error = NULL;
+    GError* error;
+    error = NULL;
     mchannel = g_io_channel_new_file(MOUNTINFO, "r", &error);
     if (mchannel != NULL)
     {

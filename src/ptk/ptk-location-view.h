@@ -15,7 +15,7 @@
 #include <gtk/gtk.h>
 #include <sys/types.h>
 
-#include "../vfs/vfs-volume.h"
+#include "../vfs/vfs-volume.hxx"
 
 G_BEGIN_DECLS
 

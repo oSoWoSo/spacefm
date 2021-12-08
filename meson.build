@@ -169,7 +169,7 @@ sources = [
   'src/vfs/vfs-mime-type.c',
   'src/vfs/vfs-thumbnail-loader.cxx',
   'src/vfs/vfs-utils.cxx',
-  'src/vfs/vfs-volume.c',
+  'src/vfs/vfs-volume.cxx',
 ]
 
 target_name = 'spacefm'

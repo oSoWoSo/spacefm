@@ -23,7 +23,7 @@
 #endif
 
 #include <unistd.h>
-#include "vfs-volume.h"
+#include "vfs-volume.hxx"
 
 #include "utils.hxx"
 

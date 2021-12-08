@@ -30,7 +30,7 @@
 #include "settings.hxx"
 #include <sys/wait.h>
 #include "main-window.h"
-#include "vfs-volume.h"
+#include "vfs-volume.hxx"
 
 #include <linux/limits.h>
 
