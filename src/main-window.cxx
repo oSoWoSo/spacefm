@@ -17,7 +17,7 @@
 #include "ptk/ptk-utils.hxx"
 
 #include "pref-dialog.hxx"
-#include "ptk/ptk-file-menu.h"
+#include "ptk/ptk-file-menu.hxx"
 
 #include "settings.hxx"
 #include "item-prop.hxx"

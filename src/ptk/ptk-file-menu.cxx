@@ -8,19 +8,10 @@
  *
  */
 
-#include <stdbool.h>
-
-#include <stdint.h>
-
 #include <fcntl.h>
-#include <unistd.h>
 
-#include "ptk-file-menu.h"
+#include "ptk-file-menu.hxx"
 #include <glib.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include <gdk/gdkkeysyms.h>
 
 #include "../vfs/vfs-app-desktop.hxx"
 
@@ -195,12 +186,12 @@ static void on_open_in_panel(GtkMenuItem* menuitem, PtkFileMenu* data)
 
 static void on_file_edit(GtkMenuItem* menuitem, PtkFileMenu* data)
 {
-    xset_edit(data->browser, data->file_path, FALSE, TRUE);
+    xset_edit((GtkWidget*)data->browser, data->file_path, FALSE, TRUE);
 }
 
 static void on_file_root_edit(GtkMenuItem* menuitem, PtkFileMenu* data)
 {
-    xset_edit(data->browser, data->file_path, TRUE, FALSE);
+    xset_edit((GtkWidget*)data->browser, data->file_path, TRUE, FALSE);
 }
 
 static void on_popup_sort_extra(GtkMenuItem* menuitem, PtkFileBrowser* file_browser, XSet* set2)
@@ -233,14 +224,14 @@ void on_popup_sortby(GtkMenuItem* menuitem, PtkFileBrowser* file_browser, int or
         val = g_strdup_printf("%d", v);
         xset_set_panel(file_browser->mypanel, "list_detailed", "y", val);
         g_free(val);
-        ptk_file_browser_set_sort_type(file_browser, v);
+        ptk_file_browser_set_sort_type(file_browser, (GtkSortType)v);
     }
     else
     {
         val = g_strdup_printf("%d", sort_order);
         xset_set_panel(file_browser->mypanel, "list_detailed", "x", val);
         g_free(val);
-        ptk_file_browser_set_sort_order(file_browser, sort_order);
+        ptk_file_browser_set_sort_order(file_browser, (PtkFBSortOrder)sort_order);
     }
 }
 
@@ -334,40 +325,40 @@ void ptk_file_menu_add_panel_view_menu(PtkFileBrowser* browser, GtkWidget* menu,
     char mode = main_window->panel_context[p - 1];
 
     bool show_side = FALSE;
-    xset_set_cb("view_refresh", ptk_file_browser_refresh, browser);
-    set = xset_set_cb_panel(p, "show_toolbox", on_popup_toggle_view, browser);
+    xset_set_cb("view_refresh", (GFunc)ptk_file_browser_refresh, browser);
+    set = xset_set_cb_panel(p, "show_toolbox", (GFunc)on_popup_toggle_view, browser);
     set->b = xset_get_panel_mode(p, "show_toolbox", mode)->b;
-    set = xset_set_cb_panel(p, "show_devmon", on_popup_toggle_view, browser);
+    set = xset_set_cb_panel(p, "show_devmon", (GFunc)on_popup_toggle_view, browser);
     set->b = xset_get_panel_mode(p, "show_devmon", mode)->b;
     if (set->b == XSET_B_TRUE)
         show_side = TRUE;
-    set = xset_set_cb_panel(p, "show_dirtree", on_popup_toggle_view, browser);
+    set = xset_set_cb_panel(p, "show_dirtree", (GFunc)on_popup_toggle_view, browser);
     set->b = xset_get_panel_mode(p, "show_dirtree", mode)->b;
     if (set->b == XSET_B_TRUE)
         show_side = TRUE;
-    set = xset_set_cb_panel(p, "show_book", on_popup_toggle_view, browser);
+    set = xset_set_cb_panel(p, "show_book", (GFunc)on_popup_toggle_view, browser);
     set->b = xset_get_panel_mode(p, "show_book", mode)->b;
     if (set->b == XSET_B_TRUE)
         show_side = TRUE;
-    set = xset_set_cb_panel(p, "show_sidebar", on_popup_toggle_view, browser);
+    set = xset_set_cb_panel(p, "show_sidebar", (GFunc)on_popup_toggle_view, browser);
     set->b = xset_get_panel_mode(p, "show_sidebar", mode)->b;
     set->disable = !show_side;
-    xset_set_cb_panel(p, "show_hidden", on_popup_show_hidden, browser);
+    xset_set_cb_panel(p, "show_hidden", (GFunc)on_popup_show_hidden, browser);
 
     if (browser->view_mode == PTK_FB_LIST_VIEW)
     {
-        set = xset_set_cb_panel(p, "detcol_size", on_popup_detailed_column, browser);
+        set = xset_set_cb_panel(p, "detcol_size", (GFunc)on_popup_detailed_column, browser);
         set->b = xset_get_panel_mode(p, "detcol_size", mode)->b;
-        set = xset_set_cb_panel(p, "detcol_type", on_popup_detailed_column, browser);
+        set = xset_set_cb_panel(p, "detcol_type", (GFunc)on_popup_detailed_column, browser);
         set->b = xset_get_panel_mode(p, "detcol_type", mode)->b;
-        set = xset_set_cb_panel(p, "detcol_perm", on_popup_detailed_column, browser);
+        set = xset_set_cb_panel(p, "detcol_perm", (GFunc)on_popup_detailed_column, browser);
         set->b = xset_get_panel_mode(p, "detcol_perm", mode)->b;
-        set = xset_set_cb_panel(p, "detcol_owner", on_popup_detailed_column, browser);
+        set = xset_set_cb_panel(p, "detcol_owner", (GFunc)on_popup_detailed_column, browser);
         set->b = xset_get_panel_mode(p, "detcol_owner", mode)->b;
-        set = xset_set_cb_panel(p, "detcol_date", on_popup_detailed_column, browser);
+        set = xset_set_cb_panel(p, "detcol_date", (GFunc)on_popup_detailed_column, browser);
         set->b = xset_get_panel_mode(p, "detcol_date", mode)->b;
 
-        xset_set_cb("view_reorder_col", on_reorder, browser);
+        xset_set_cb("view_reorder_col", (GFunc)on_reorder, browser);
         set = xset_set("view_columns", "disable", "0");
         desc =
             g_strdup_printf("panel%d_detcol_size panel%d_detcol_type panel%d_detcol_perm "
@@ -379,7 +370,7 @@ void ptk_file_menu_add_panel_view_menu(PtkFileBrowser* browser, GtkWidget* menu,
                             p);
         xset_set_set(set, XSET_SET_SET_DESC, desc);
         g_free(desc);
-        set = xset_set_cb("rubberband", main_window_rubberband_all, NULL);
+        set = xset_set_cb("rubberband", (GFunc)main_window_rubberband_all, NULL);
         set->disable = FALSE;
     }
     else
@@ -388,7 +379,7 @@ void ptk_file_menu_add_panel_view_menu(PtkFileBrowser* browser, GtkWidget* menu,
         xset_set("rubberband", "disable", "1");
     }
 
-    set = xset_set_cb("view_thumb", main_window_toggle_thumbnails_all_windows, NULL);
+    set = xset_set_cb("view_thumb", (GFunc)main_window_toggle_thumbnails_all_windows, NULL);
     set->b = app_settings.show_thumbnail ? XSET_B_TRUE : XSET_B_UNSET;
 
     if (browser->view_mode == PTK_FB_ICON_VIEW)
@@ -398,51 +389,51 @@ void ptk_file_menu_add_panel_view_menu(PtkFileBrowser* browser, GtkWidget* menu,
     }
     else
     {
-        set = xset_set_cb_panel(p, "list_large", on_popup_list_large, browser);
+        set = xset_set_cb_panel(p, "list_large", (GFunc)on_popup_list_large, browser);
         set->disable = FALSE;
         set->b = xset_get_panel_mode(p, "list_large", mode)->b;
     }
 
-    set = xset_set_cb_panel(p, "list_detailed", on_popup_list_detailed, browser);
+    set = xset_set_cb_panel(p, "list_detailed", (GFunc)on_popup_list_detailed, browser);
     xset_set_ob2(set, NULL, NULL);
     set_radio = set;
-    set = xset_set_cb_panel(p, "list_icons", on_popup_list_icons, browser);
+    set = xset_set_cb_panel(p, "list_icons", (GFunc)on_popup_list_icons, browser);
     xset_set_ob2(set, NULL, set_radio);
-    set = xset_set_cb_panel(p, "list_compact", on_popup_list_compact, browser);
+    set = xset_set_cb_panel(p, "list_compact", (GFunc)on_popup_list_compact, browser);
     xset_set_ob2(set, NULL, set_radio);
 
-    set = xset_set_cb("sortby_name", on_popup_sortby, browser);
+    set = xset_set_cb("sortby_name", (GFunc)on_popup_sortby, browser);
     xset_set_ob1_int(set, "sortorder", PTK_FB_SORT_BY_NAME);
     xset_set_ob2(set, NULL, NULL);
     set->b = browser->sort_order == PTK_FB_SORT_BY_NAME ? XSET_B_TRUE : XSET_B_FALSE;
     set_radio = set;
-    set = xset_set_cb("sortby_size", on_popup_sortby, browser);
+    set = xset_set_cb("sortby_size", (GFunc)on_popup_sortby, browser);
     xset_set_ob1_int(set, "sortorder", PTK_FB_SORT_BY_SIZE);
     xset_set_ob2(set, NULL, set_radio);
     set->b = browser->sort_order == PTK_FB_SORT_BY_SIZE ? XSET_B_TRUE : XSET_B_FALSE;
-    set = xset_set_cb("sortby_type", on_popup_sortby, browser);
+    set = xset_set_cb("sortby_type", (GFunc)on_popup_sortby, browser);
     xset_set_ob1_int(set, "sortorder", PTK_FB_SORT_BY_TYPE);
     xset_set_ob2(set, NULL, set_radio);
     set->b = browser->sort_order == PTK_FB_SORT_BY_TYPE ? XSET_B_TRUE : XSET_B_FALSE;
-    set = xset_set_cb("sortby_perm", on_popup_sortby, browser);
+    set = xset_set_cb("sortby_perm", (GFunc)on_popup_sortby, browser);
     xset_set_ob1_int(set, "sortorder", PTK_FB_SORT_BY_PERM);
     xset_set_ob2(set, NULL, set_radio);
     set->b = browser->sort_order == PTK_FB_SORT_BY_PERM ? XSET_B_TRUE : XSET_B_FALSE;
-    set = xset_set_cb("sortby_owner", on_popup_sortby, browser);
+    set = xset_set_cb("sortby_owner", (GFunc)on_popup_sortby, browser);
     xset_set_ob1_int(set, "sortorder", PTK_FB_SORT_BY_OWNER);
     xset_set_ob2(set, NULL, set_radio);
     set->b = browser->sort_order == PTK_FB_SORT_BY_OWNER ? XSET_B_TRUE : XSET_B_FALSE;
-    set = xset_set_cb("sortby_date", on_popup_sortby, browser);
+    set = xset_set_cb("sortby_date", (GFunc)on_popup_sortby, browser);
     xset_set_ob1_int(set, "sortorder", PTK_FB_SORT_BY_MTIME);
     xset_set_ob2(set, NULL, set_radio);
     set->b = browser->sort_order == PTK_FB_SORT_BY_MTIME ? XSET_B_TRUE : XSET_B_FALSE;
 
-    set = xset_set_cb("sortby_ascend", on_popup_sortby, browser);
+    set = xset_set_cb("sortby_ascend", (GFunc)on_popup_sortby, browser);
     xset_set_ob1_int(set, "sortorder", -1);
     xset_set_ob2(set, NULL, NULL);
     set->b = browser->sort_type == GTK_SORT_ASCENDING ? XSET_B_TRUE : XSET_B_FALSE;
     set_radio = set;
-    set = xset_set_cb("sortby_descend", on_popup_sortby, browser);
+    set = xset_set_cb("sortby_descend", (GFunc)on_popup_sortby, browser);
     xset_set_ob1_int(set, "sortorder", -2);
     xset_set_ob2(set, NULL, set_radio);
     set->b = browser->sort_type == GTK_SORT_DESCENDING ? XSET_B_TRUE : XSET_B_FALSE;
@@ -450,34 +441,34 @@ void ptk_file_menu_add_panel_view_menu(PtkFileBrowser* browser, GtkWidget* menu,
     // this crashes if !browser->file_list so don't allow
     if (browser->file_list)
     {
-        set = xset_set_cb("sortx_natural", on_popup_sort_extra, browser);
+        set = xset_set_cb("sortx_natural", (GFunc)on_popup_sort_extra, browser);
         set->b = PTK_FILE_LIST(browser->file_list)->sort_natural ? XSET_B_TRUE : XSET_B_FALSE;
-        set = xset_set_cb("sortx_case", on_popup_sort_extra, browser);
+        set = xset_set_cb("sortx_case", (GFunc)on_popup_sort_extra, browser);
         set->b = PTK_FILE_LIST(browser->file_list)->sort_case ? XSET_B_TRUE : XSET_B_FALSE;
         set->disable = !PTK_FILE_LIST(browser->file_list)->sort_natural;
 
-        set = xset_set_cb("sortx_directories", on_popup_sort_extra, browser);
+        set = xset_set_cb("sortx_directories", (GFunc)on_popup_sort_extra, browser);
         xset_set_ob2(set, NULL, NULL);
         set->b = PTK_FILE_LIST(browser->file_list)->sort_dir == PTK_LIST_SORT_DIR_FIRST
                      ? XSET_B_TRUE
                      : XSET_B_FALSE;
         set_radio = set;
-        set = xset_set_cb("sortx_files", on_popup_sort_extra, browser);
+        set = xset_set_cb("sortx_files", (GFunc)on_popup_sort_extra, browser);
         xset_set_ob2(set, NULL, set_radio);
         set->b = PTK_FILE_LIST(browser->file_list)->sort_dir == PTK_LIST_SORT_DIR_LAST
                      ? XSET_B_TRUE
                      : XSET_B_FALSE;
-        set = xset_set_cb("sortx_mix", on_popup_sort_extra, browser);
+        set = xset_set_cb("sortx_mix", (GFunc)on_popup_sort_extra, browser);
         xset_set_ob2(set, NULL, set_radio);
         set->b = PTK_FILE_LIST(browser->file_list)->sort_dir == PTK_LIST_SORT_DIR_MIXED
                      ? XSET_B_TRUE
                      : XSET_B_FALSE;
 
-        set = xset_set_cb("sortx_hidfirst", on_popup_sort_extra, browser);
+        set = xset_set_cb("sortx_hidfirst", (GFunc)on_popup_sort_extra, browser);
         xset_set_ob2(set, NULL, NULL);
         set->b = PTK_FILE_LIST(browser->file_list)->sort_hidden_first ? XSET_B_TRUE : XSET_B_FALSE;
         set_radio = set;
-        set = xset_set_cb("sortx_hidlast", on_popup_sort_extra, browser);
+        set = xset_set_cb("sortx_hidlast", (GFunc)on_popup_sort_extra, browser);
         xset_set_ob2(set, NULL, set_radio);
         set->b = PTK_FILE_LIST(browser->file_list)->sort_hidden_first ? XSET_B_FALSE : XSET_B_TRUE;
     }
@@ -662,7 +653,7 @@ GtkWidget* ptk_file_menu_new(PtkFileBrowser* browser, const char* file_path, VFS
              // Note: network filesystems may become unresponsive here
              vfs_file_info_is_executable(info, file_path)))
         {
-            set = xset_set_cb("open_execute", on_popup_open_activate, data);
+            set = xset_set_cb("open_execute", (GFunc)on_popup_open_activate, data);
             xset_add_menuitem(browser, submenu, accel_group, set);
         }
 
@@ -681,38 +672,40 @@ GtkWidget* ptk_file_menu_new(PtkFileBrowser* browser, const char* file_path, VFS
         {
             g_slist_free(handlers_slist);
 
-            set_arc_extract = xset_set_cb("arc_extract", on_popup_extract_here_activate, data);
+            set_arc_extract =
+                xset_set_cb("arc_extract", (GFunc)on_popup_extract_here_activate, data);
             xset_set_ob1(set_arc_extract, "set", set_arc_extract);
             set_arc_extract->disable = no_write_access;
 
-            set_arc_extractto = xset_set_cb("arc_extractto", on_popup_extract_to_activate, data);
+            set_arc_extractto =
+                xset_set_cb("arc_extractto", (GFunc)on_popup_extract_to_activate, data);
             xset_set_ob1(set_arc_extractto, "set", set_arc_extractto);
 
-            set_arc_list = xset_set_cb("arc_list", on_popup_extract_list_activate, data);
+            set_arc_list = xset_set_cb("arc_list", (GFunc)on_popup_extract_list_activate, data);
             xset_set_ob1(set_arc_list, "set", set_arc_list);
 
             set = xset_get("arc_def_open");
             // do NOT use set = xset_set_cb here or wrong set is passed
-            xset_set_cb("arc_def_open", on_archive_default, set);
+            xset_set_cb("arc_def_open", (GFunc)on_archive_default, set);
             xset_set_ob2(set, NULL, NULL);
             set_radio = set;
 
             set = xset_get("arc_def_ex");
-            xset_set_cb("arc_def_ex", on_archive_default, set);
+            xset_set_cb("arc_def_ex", (GFunc)on_archive_default, set);
             xset_set_ob2(set, NULL, set_radio);
 
             set = xset_get("arc_def_exto");
-            xset_set_cb("arc_def_exto", on_archive_default, set);
+            xset_set_cb("arc_def_exto", (GFunc)on_archive_default, set);
             xset_set_ob2(set, NULL, set_radio);
 
             set = xset_get("arc_def_list");
-            xset_set_cb("arc_def_list", on_archive_default, set);
+            xset_set_cb("arc_def_list", (GFunc)on_archive_default, set);
             xset_set_ob2(set, NULL, set_radio);
 
             set = xset_get("arc_def_write");
             set->disable = geteuid() == 0 || !xset_get_b("arc_def_parent");
 
-            xset_set_cb("arc_conf2", on_archive_show_config, data);
+            xset_set_cb("arc_conf2", (GFunc)on_archive_show_config, data);
 
             if (!xset_get_b("arc_def_open"))
             {
@@ -856,10 +849,10 @@ GtkWidget* ptk_file_menu_new(PtkFileBrowser* browser, const char* file_path, VFS
         item = GTK_MENU_ITEM(gtk_separator_menu_item_new());
         gtk_menu_shell_append(GTK_MENU_SHELL(submenu), GTK_WIDGET(item));
 
-        set = xset_set_cb("open_other", on_popup_open_with_another_activate, data);
+        set = xset_set_cb("open_other", (GFunc)on_popup_open_with_another_activate, data);
         xset_add_menuitem(browser, submenu, accel_group, set);
 
-        set = xset_set_cb("open_hand", on_popup_handlers_activate, data);
+        set = xset_set_cb("open_hand", (GFunc)on_popup_handlers_activate, data);
         xset_add_menuitem(browser, submenu, accel_group, set);
 
         // Default
@@ -875,7 +868,7 @@ GtkWidget* ptk_file_menu_new(PtkFileBrowser* browser, const char* file_path, VFS
         g_free(plain_type);
         plain_type = g_strdup_printf("open_all_type_%s", str);
         g_free(str);
-        set = xset_set_cb(plain_type, on_popup_open_all, data);
+        set = xset_set_cb(plain_type, (GFunc)on_popup_open_all, data);
         g_free(plain_type);
         set->lock = TRUE;
         set->menu_style = XSET_MENU_NORMAL;
@@ -905,42 +898,42 @@ GtkWidget* ptk_file_menu_new(PtkFileBrowser* browser, const char* file_path, VFS
             if (is_text)
             {
                 // Edit
-                set = xset_set_cb("open_edit", on_file_edit, data);
+                set = xset_set_cb("open_edit", (GFunc)on_file_edit, data);
                 set->disable = (geteuid() == 0);
                 xset_add_menuitem(browser, submenu, accel_group, set);
-                set = xset_set_cb("open_edit_root", on_file_root_edit, data);
+                set = xset_set_cb("open_edit_root", (GFunc)on_file_root_edit, data);
                 xset_add_menuitem(browser, submenu, accel_group, set);
             }
             else if (browser && is_dir)
             {
                 // Open Dir
-                set = xset_set_cb("opentab_prev", on_open_in_tab, data);
+                set = xset_set_cb("opentab_prev", (GFunc)on_open_in_tab, data);
                 xset_set_ob1_int(set, "tab_num", -1);
                 set->disable = (tab_num == 1);
-                set = xset_set_cb("opentab_next", on_open_in_tab, data);
+                set = xset_set_cb("opentab_next", (GFunc)on_open_in_tab, data);
                 xset_set_ob1_int(set, "tab_num", -2);
                 set->disable = (tab_num == tab_count);
-                set = xset_set_cb("opentab_new", on_popup_open_in_new_tab_activate, data);
+                set = xset_set_cb("opentab_new", (GFunc)on_popup_open_in_new_tab_activate, data);
                 for (i = 1; i < 11; i++)
                 {
                     name = g_strdup_printf("opentab_%d", i);
-                    set = xset_set_cb(name, on_open_in_tab, data);
+                    set = xset_set_cb(name, (GFunc)on_open_in_tab, data);
                     xset_set_ob1_int(set, "tab_num", i);
                     set->disable = (i > tab_count) || (i == tab_num);
                     g_free(name);
                 }
 
-                set = xset_set_cb("open_in_panelprev", on_open_in_panel, data);
+                set = xset_set_cb("open_in_panelprev", (GFunc)on_open_in_panel, data);
                 xset_set_ob1_int(set, "panel_num", -1);
                 set->disable = (panel_count == 1);
-                set = xset_set_cb("open_in_panelnext", on_open_in_panel, data);
+                set = xset_set_cb("open_in_panelnext", (GFunc)on_open_in_panel, data);
                 xset_set_ob1_int(set, "panel_num", -2);
                 set->disable = (panel_count == 1);
 
                 for (i = 1; i < 5; i++)
                 {
                     name = g_strdup_printf("open_in_panel%d", i);
-                    set = xset_set_cb(name, on_open_in_panel, data);
+                    set = xset_set_cb(name, (GFunc)on_open_in_panel, data);
                     xset_set_ob1_int(set, "panel_num", i);
                     // set->disable = ( p == i );
                     g_free(name);
@@ -977,42 +970,42 @@ GtkWidget* ptk_file_menu_new(PtkFileBrowser* browser, const char* file_path, VFS
     // Go >
     if (browser)
     {
-        set = xset_set_cb("go_back", ptk_file_browser_go_back, browser);
+        set = xset_set_cb("go_back", (GFunc)ptk_file_browser_go_back, browser);
         set->disable = !(browser->curHistory && browser->curHistory->prev);
-        set = xset_set_cb("go_forward", ptk_file_browser_go_forward, browser);
+        set = xset_set_cb("go_forward", (GFunc)ptk_file_browser_go_forward, browser);
         set->disable = !(browser->curHistory && browser->curHistory->next);
-        set = xset_set_cb("go_up", ptk_file_browser_go_up, browser);
+        set = xset_set_cb("go_up", (GFunc)ptk_file_browser_go_up, browser);
         set->disable = !strcmp(cwd, "/");
-        xset_set_cb("go_home", ptk_file_browser_go_home, browser);
-        xset_set_cb("go_default", ptk_file_browser_go_default, browser);
-        xset_set_cb("go_set_default", ptk_file_browser_set_default_folder, browser);
-        xset_set_cb("edit_canon", on_popup_canon, data);
-        xset_set_cb("go_refresh", ptk_file_browser_refresh, browser);
-        set = xset_set_cb("focus_path_bar", ptk_file_browser_focus, browser);
+        xset_set_cb("go_home", (GFunc)ptk_file_browser_go_home, browser);
+        xset_set_cb("go_default", (GFunc)ptk_file_browser_go_default, browser);
+        xset_set_cb("go_set_default", (GFunc)ptk_file_browser_set_default_folder, browser);
+        xset_set_cb("edit_canon", (GFunc)on_popup_canon, data);
+        xset_set_cb("go_refresh", (GFunc)ptk_file_browser_refresh, browser);
+        set = xset_set_cb("focus_path_bar", (GFunc)ptk_file_browser_focus, browser);
         xset_set_ob1_int(set, "job", 0);
-        set = xset_set_cb("focus_filelist", ptk_file_browser_focus, browser);
+        set = xset_set_cb("focus_filelist", (GFunc)ptk_file_browser_focus, browser);
         xset_set_ob1_int(set, "job", 4);
-        set = xset_set_cb("focus_dirtree", ptk_file_browser_focus, browser);
+        set = xset_set_cb("focus_dirtree", (GFunc)ptk_file_browser_focus, browser);
         xset_set_ob1_int(set, "job", 1);
-        set = xset_set_cb("focus_book", ptk_file_browser_focus, browser);
+        set = xset_set_cb("focus_book", (GFunc)ptk_file_browser_focus, browser);
         xset_set_ob1_int(set, "job", 2);
-        set = xset_set_cb("focus_device", ptk_file_browser_focus, browser);
+        set = xset_set_cb("focus_device", (GFunc)ptk_file_browser_focus, browser);
         xset_set_ob1_int(set, "job", 3);
 
         // Go > Tab >
-        set = xset_set_cb("tab_prev", ptk_file_browser_go_tab, browser);
+        set = xset_set_cb("tab_prev", (GFunc)ptk_file_browser_go_tab, browser);
         xset_set_ob1_int(set, "tab_num", -1);
         set->disable = (tab_count < 2);
-        set = xset_set_cb("tab_next", ptk_file_browser_go_tab, browser);
+        set = xset_set_cb("tab_next", (GFunc)ptk_file_browser_go_tab, browser);
         xset_set_ob1_int(set, "tab_num", -2);
         set->disable = (tab_count < 2);
-        set = xset_set_cb("tab_close", ptk_file_browser_go_tab, browser);
+        set = xset_set_cb("tab_close", (GFunc)ptk_file_browser_go_tab, browser);
         xset_set_ob1_int(set, "tab_num", -3);
 
         for (i = 1; i < 11; i++)
         {
             name = g_strdup_printf("tab_%d", i);
-            set = xset_set_cb(name, ptk_file_browser_go_tab, browser);
+            set = xset_set_cb(name, (GFunc)ptk_file_browser_go_tab, browser);
             xset_set_ob1_int(set, "tab_num", i);
             set->disable = (i > tab_count) || (i == tab_num);
             g_free(name);
@@ -1021,17 +1014,17 @@ GtkWidget* ptk_file_menu_new(PtkFileBrowser* browser, const char* file_path, VFS
         xset_add_menuitem(browser, popup, accel_group, set);
 
         // New >
-        set = xset_set_cb("new_file", on_popup_new_text_file_activate, data);
-        set = xset_set_cb("new_directory", on_popup_new_folder_activate, data);
-        set = xset_set_cb("new_link", on_popup_new_link_activate, data);
-        set = xset_set_cb("new_archive", on_popup_compress_activate, data);
+        set = xset_set_cb("new_file", (GFunc)on_popup_new_text_file_activate, data);
+        set = xset_set_cb("new_directory", (GFunc)on_popup_new_folder_activate, data);
+        set = xset_set_cb("new_link", (GFunc)on_popup_new_link_activate, data);
+        set = xset_set_cb("new_archive", (GFunc)on_popup_compress_activate, data);
         set->disable = (!sel_files);
 
-        set = xset_set_cb("tab_new", ptk_file_browser_new_tab, browser);
+        set = xset_set_cb("tab_new", (GFunc)ptk_file_browser_new_tab, browser);
         set->disable = !browser;
-        set = xset_set_cb("tab_new_here", on_popup_open_in_new_tab_here, data);
+        set = xset_set_cb("tab_new_here", (GFunc)on_popup_open_in_new_tab_here, data);
         set->disable = !browser;
-        set = xset_set_cb("new_bookmark", on_new_bookmark, data);
+        set = xset_set_cb("new_bookmark", (GFunc)on_new_bookmark, data);
         set->disable = !browser;
 
         set = xset_get("open_new");
@@ -1046,38 +1039,38 @@ GtkWidget* ptk_file_menu_new(PtkFileBrowser* browser, const char* file_path, VFS
         xset_add_menuitem(browser, popup, accel_group, set);
 
         // Edit
-        set = xset_set_cb("copy_name", on_popup_copy_name_activate, data);
+        set = xset_set_cb("copy_name", (GFunc)on_popup_copy_name_activate, data);
         set->disable = !sel_files;
-        set = xset_set_cb("copy_path", on_popup_copy_text_activate, data);
+        set = xset_set_cb("copy_path", (GFunc)on_popup_copy_text_activate, data);
         set->disable = !sel_files;
-        set = xset_set_cb("copy_parent", on_popup_copy_parent_activate, data);
+        set = xset_set_cb("copy_parent", (GFunc)on_popup_copy_parent_activate, data);
         set->disable = !sel_files;
-        set = xset_set_cb("paste_link", on_popup_paste_link_activate, data);
+        set = xset_set_cb("paste_link", (GFunc)on_popup_paste_link_activate, data);
         set->disable = !is_clip || no_write_access;
-        set = xset_set_cb("paste_target", on_popup_paste_target_activate, data);
+        set = xset_set_cb("paste_target", (GFunc)on_popup_paste_target_activate, data);
         set->disable = !is_clip || no_write_access;
 
-        set = xset_set_cb("paste_as", on_popup_paste_as_activate, data);
+        set = xset_set_cb("paste_as", (GFunc)on_popup_paste_as_activate, data);
         set->disable = !is_clip;
 
-        set = xset_set_cb("root_copy_loc", on_popup_rootcmd_activate, data);
+        set = xset_set_cb("root_copy_loc", (GFunc)on_popup_rootcmd_activate, data);
         xset_set_ob1(set, "set", set);
         set->disable = !sel_files;
-        set = xset_set_cb("root_move2", on_popup_rootcmd_activate, data);
+        set = xset_set_cb("root_move2", (GFunc)on_popup_rootcmd_activate, data);
         xset_set_ob1(set, "set", set);
         set->disable = !sel_files;
-        set = xset_set_cb("root_delete", on_popup_rootcmd_activate, data);
+        set = xset_set_cb("root_delete", (GFunc)on_popup_rootcmd_activate, data);
         xset_set_ob1(set, "set", set);
         set->disable = !sel_files;
 
-        set = xset_set_cb("edit_hide", on_hide_file, data);
+        set = xset_set_cb("edit_hide", (GFunc)on_hide_file, data);
         set->disable = !sel_files || no_write_access || !browser;
 
-        xset_set_cb("select_all", ptk_file_browser_select_all, data->browser);
-        set = xset_set_cb("select_un", ptk_file_browser_unselect_all, browser);
+        xset_set_cb("select_all", (GFunc)ptk_file_browser_select_all, data->browser);
+        set = xset_set_cb("select_un", (GFunc)ptk_file_browser_unselect_all, browser);
         set->disable = !sel_files;
-        xset_set_cb("select_invert", ptk_file_browser_invert_selection, browser);
-        xset_set_cb("select_patt", on_popup_select_pattern, data);
+        xset_set_cb("select_invert", (GFunc)ptk_file_browser_invert_selection, browser);
+        xset_set_cb("select_patt", (GFunc)on_popup_select_pattern, data);
 
         static const char* copycmd[] = {
             "copy_loc",        "copy_loc_last", "copy_tab_prev", "copy_tab_next", "copy_tab_1",
@@ -1090,7 +1083,7 @@ GtkWidget* ptk_file_menu_new(PtkFileBrowser* browser, const char* file_path, VFS
             "move_panel_next", "move_panel_1",  "move_panel_2",  "move_panel_3",  "move_panel_4"};
         for (i = 0; i < G_N_ELEMENTS(copycmd); i++)
         {
-            set = xset_set_cb(copycmd[i], on_copycmd, data);
+            set = xset_set_cb(copycmd[i], (GFunc)on_copycmd, data);
             xset_set_ob1(set, "set", set);
         }
 
@@ -1158,19 +1151,19 @@ GtkWidget* ptk_file_menu_new(PtkFileBrowser* browser, const char* file_path, VFS
         xset_add_menuitem(browser, popup, accel_group, set);
     }
 
-    set = xset_set_cb("edit_cut", on_popup_cut_activate, data);
+    set = xset_set_cb("edit_cut", (GFunc)on_popup_cut_activate, data);
     set->disable = !sel_files;
     xset_add_menuitem(browser, popup, accel_group, set);
-    set = xset_set_cb("edit_copy", on_popup_copy_activate, data);
+    set = xset_set_cb("edit_copy", (GFunc)on_popup_copy_activate, data);
     set->disable = !sel_files;
     xset_add_menuitem(browser, popup, accel_group, set);
-    set = xset_set_cb("edit_paste", on_popup_paste_activate, data);
+    set = xset_set_cb("edit_paste", (GFunc)on_popup_paste_activate, data);
     set->disable = !is_clip || no_write_access;
     xset_add_menuitem(browser, popup, accel_group, set);
-    set = xset_set_cb("edit_rename", on_popup_rename_activate, data);
+    set = xset_set_cb("edit_rename", (GFunc)on_popup_rename_activate, data);
     set->disable = !sel_files;
     xset_add_menuitem(browser, popup, accel_group, set);
-    set = xset_set_cb("edit_delete", on_popup_delete_activate, data);
+    set = xset_set_cb("edit_delete", (GFunc)on_popup_delete_activate, data);
     set->disable = !sel_files || no_write_access;
     xset_add_menuitem(browser, popup, accel_group, set);
 
@@ -1183,8 +1176,8 @@ GtkWidget* ptk_file_menu_new(PtkFileBrowser* browser, const char* file_path, VFS
         ptk_file_menu_add_panel_view_menu(browser, popup, accel_group);
 
         // Properties
-        set = xset_set_cb("prop_info", on_popup_file_properties_activate, data);
-        set = xset_set_cb("prop_perm", on_popup_file_permissions_activate, data);
+        set = xset_set_cb("prop_info", (GFunc)on_popup_file_properties_activate, data);
+        set = xset_set_cb("prop_perm", (GFunc)on_popup_file_permissions_activate, data);
 
         static const char* permcmd[] = {
             "perm_r",           "perm_rw",           "perm_rwx",         "perm_r_r",
@@ -1205,7 +1198,7 @@ GtkWidget* ptk_file_menu_new(PtkFileBrowser* browser, const char* file_path, VFS
             "rown_root_myuser", "rown_root_user1",   "rown_root_user2"};
         for (i = 0; i < G_N_ELEMENTS(permcmd); i++)
         {
-            set = xset_set_cb(permcmd[i], on_permission, data);
+            set = xset_set_cb(permcmd[i], (GFunc)on_permission, data);
             xset_set_ob1(set, "set", set);
         }
 
@@ -1390,7 +1383,7 @@ void app_job(GtkWidget* item, GtkWidget* app_item)
             vfs_mime_type_remove_action(mime_type, desktop_file->file_name);
             if (strcmp(mime_type->type, "text/plain") && g_str_has_prefix(mime_type->type, "text/"))
                 xset_msg_dialog(
-                    data->browser,
+                    (GtkWidget*)data->browser,
                     0,
                     "Remove Text Type Association",
                     0,
@@ -1459,13 +1452,13 @@ void app_job(GtkWidget* item, GtkWidget* app_item)
                     return;
                 }
             }
-            xset_edit(data->browser, path, FALSE, FALSE);
+            xset_edit((GtkWidget*)data->browser, path, FALSE, FALSE);
             g_free(path);
             break;
         case APP_JOB_VIEW:
             path = get_shared_desktop_file_location(desktop_file->file_name);
             if (path)
-                xset_edit(data->browser, path, FALSE, TRUE);
+                xset_edit((GtkWidget*)data->browser, path, FALSE, TRUE);
             break;
         case APP_JOB_EDIT_LIST:
             // $XDG_CONFIG_HOME=[~/.config]/mimeapps.list
@@ -1478,7 +1471,7 @@ void app_job(GtkWidget* item, GtkWidget* app_item)
                 path =
                     g_build_filename(g_get_user_data_dir(), "applications", "mimeapps.list", NULL);
             }
-            xset_edit(data->browser, path, FALSE, TRUE);
+            xset_edit((GtkWidget*)data->browser, path, FALSE, TRUE);
             g_free(path);
             break;
         case APP_JOB_ADD:
@@ -1637,7 +1630,7 @@ void app_job(GtkWidget* item, GtkWidget* app_item)
                 g_free(contents);
             }
             if (g_file_test(path, G_FILE_TEST_EXISTS))
-                xset_edit(data->browser, path, FALSE, FALSE);
+                xset_edit((GtkWidget*)data->browser, path, FALSE, FALSE);
 
             g_free(path);
             vfs_dir_monitor_mime();
@@ -1647,13 +1640,13 @@ void app_job(GtkWidget* item, GtkWidget* app_item)
             path = g_build_filename("/usr/share/mime", str, NULL);
             g_free(str);
             if (g_file_test(path, G_FILE_TEST_EXISTS))
-                xset_edit(data->browser, path, FALSE, TRUE);
+                xset_edit((GtkWidget*)data->browser, path, FALSE, TRUE);
 
             g_free(path);
             break;
         case APP_JOB_VIEW_OVER:
             path = g_strdup("/usr/share/mime/packages/Overrides.xml");
-            xset_edit(data->browser, path, TRUE, FALSE);
+            xset_edit((GtkWidget*)data->browser, path, TRUE, FALSE);
             break;
         case APP_JOB_BROWSE_MIME_USR:
             if (data->browser)
@@ -1681,7 +1674,7 @@ void app_job(GtkWidget* item, GtkWidget* app_item)
             g_free(path);
             break;
         case APP_JOB_HELP:
-            xset_show_help(data->browser, NULL, "#designmode-mime");
+            xset_show_help((GtkWidget*)data->browser, NULL, "#designmode-mime");
             break;
         default:
             break;
@@ -1762,7 +1755,7 @@ static bool app_menu_keypress(GtkWidget* menu, GdkEventKey* event, PtkFileMenu* 
                     }
                 }
                 gtk_menu_shell_deactivate(GTK_MENU_SHELL(menu));
-                xset_show_help(data->browser, NULL, help);
+                xset_show_help((GtkWidget*)data->browser, NULL, help);
                 return TRUE;
                 break;
             case GDK_KEY_F2:
@@ -1863,17 +1856,27 @@ static void show_app_menu(GtkWidget* menu, GtkWidget* app_item, PtkFileMenu* dat
 
     // Set Default
     newitem = app_menu_additem(app_menu,
-                               "_Set As Default",
-                               "document-save",
+                               g_strdup("_Set As Default"),
+                               g_strdup("document-save"),
                                APP_JOB_DEFAULT,
                                app_item,
                                data);
 
     // Remove
-    newitem = app_menu_additem(app_menu, "_Remove", "edit-delete", APP_JOB_REMOVE, app_item, data);
+    newitem = app_menu_additem(app_menu,
+                               g_strdup("_Remove"),
+                               g_strdup("edit-delete"),
+                               APP_JOB_REMOVE,
+                               app_item,
+                               data);
 
     // Add
-    newitem = app_menu_additem(app_menu, "_Add...", "list-add", APP_JOB_ADD, app_item, data);
+    newitem = app_menu_additem(app_menu,
+                               g_strdup("_Add..."),
+                               g_strdup("list-add"),
+                               APP_JOB_ADD,
+                               app_item,
+                               data);
 
     // Separator
     gtk_container_add(GTK_CONTAINER(app_menu), gtk_separator_menu_item_new());
@@ -1886,14 +1889,14 @@ static void show_app_menu(GtkWidget* menu, GtkWidget* app_item, PtkFileMenu* dat
         if (g_file_test(path, G_FILE_TEST_EXISTS))
         {
             str = replace_string(desktop_file->file_name, ".desktop", "._desktop", FALSE);
-            icon = "Edit";
+            icon = g_strdup("Edit");
         }
         else
         {
             str2 = replace_string(desktop_file->file_name, ".desktop", "._desktop", FALSE);
             str = g_strdup_printf("%s (*%s)", str2, "copy");
             g_free(str2);
-            icon = "document-new";
+            icon = g_strdup("document-new");
         }
         newitem = app_menu_additem(app_menu, str, icon, APP_JOB_EDIT, app_item, data);
         g_free(str);
@@ -1901,12 +1904,20 @@ static void show_app_menu(GtkWidget* menu, GtkWidget* app_item, PtkFileMenu* dat
     }
 
     // mimeapps.list
-    newitem =
-        app_menu_additem(app_menu, "_mimeapps.list", "Edit", APP_JOB_EDIT_LIST, app_item, data);
+    newitem = app_menu_additem(app_menu,
+                               g_strdup("_mimeapps.list"),
+                               g_strdup("Edit"),
+                               APP_JOB_EDIT_LIST,
+                               app_item,
+                               data);
 
     // applications/
-    newitem =
-        app_menu_additem(app_menu, "appli_cations/", "folder", APP_JOB_BROWSE, app_item, data);
+    newitem = app_menu_additem(app_menu,
+                               g_strdup("appli_cations/"),
+                               g_strdup("folder"),
+                               APP_JOB_BROWSE,
+                               app_item,
+                               data);
     gtk_widget_set_sensitive(GTK_WIDGET(newitem), !!data->browser);
 
     // Separator
@@ -1925,7 +1936,7 @@ static void show_app_menu(GtkWidget* menu, GtkWidget* app_item, PtkFileMenu* dat
         path = str;
         str = g_strdup_printf("%s._xml", path);
         g_free(path);
-        icon = "Edit";
+        icon = g_strdup("Edit");
     }
     else
     {
@@ -1934,14 +1945,14 @@ static void show_app_menu(GtkWidget* menu, GtkWidget* app_item, PtkFileMenu* dat
         path = str;
         str = g_strdup_printf("%s._xml (*%s)", path, "new");
         g_free(path);
-        icon = "document-new";
+        icon = g_strdup("document-new");
     }
     newitem = app_menu_additem(app_menu, str, icon, APP_JOB_EDIT_TYPE, app_item, data);
 
     // mime/packages/
     newitem = app_menu_additem(app_menu,
-                               "mime/pac_kages/",
-                               "folder",
+                               g_strdup("mime/pac_kages/"),
+                               g_strdup("folder"),
                                APP_JOB_BROWSE_MIME,
                                app_item,
                                data);
@@ -1964,7 +1975,7 @@ static void show_app_menu(GtkWidget* menu, GtkWidget* app_item, PtkFileMenu* dat
     {
         newitem = app_menu_additem(submenu,
                                    desktop_file->file_name,
-                                   "text-x-generic",
+                                   g_strdup("text-x-generic"),
                                    APP_JOB_VIEW,
                                    app_item,
                                    data);
@@ -1976,8 +1987,8 @@ static void show_app_menu(GtkWidget* menu, GtkWidget* app_item, PtkFileMenu* dat
 
     // /usr applications/
     newitem = app_menu_additem(submenu,
-                               "appli_cations/",
-                               "folder",
+                               g_strdup("appli_cations/"),
+                               g_strdup("folder"),
                                APP_JOB_BROWSE_SHARED,
                                app_item,
                                data);
@@ -1991,22 +2002,31 @@ static void show_app_menu(GtkWidget* menu, GtkWidget* app_item, PtkFileMenu* dat
     path = g_build_filename("/usr/share/mime", str, NULL);
     g_free(str);
     str = g_strdup_printf("%s._xml", type);
-    newitem = app_menu_additem(submenu, str, "text-x-generic", APP_JOB_VIEW_TYPE, app_item, data);
+    newitem = app_menu_additem(submenu,
+                               str,
+                               g_strdup("text-x-generic"),
+                               APP_JOB_VIEW_TYPE,
+                               app_item,
+                               data);
     g_free(str);
     gtk_widget_set_sensitive(GTK_WIDGET(newitem), g_file_test(path, G_FILE_TEST_EXISTS));
     g_free(path);
 
     // /usr *Overrides.xml
-    newitem =
-        app_menu_additem(submenu, "_Overrides.xml", "Edit", APP_JOB_VIEW_OVER, app_item, data);
+    newitem = app_menu_additem(submenu,
+                               g_strdup("_Overrides.xml"),
+                               g_strdup("Edit"),
+                               APP_JOB_VIEW_OVER,
+                               app_item,
+                               data);
     gtk_widget_set_sensitive(
         GTK_WIDGET(newitem),
         g_file_test("/usr/share/mime/packages/Overrides.xml", G_FILE_TEST_EXISTS));
 
     // mime/packages/
     newitem = app_menu_additem(submenu,
-                               "mime/pac_kages/",
-                               "folder",
+                               g_strdup("mime/pac_kages/"),
+                               g_strdup("folder"),
                                APP_JOB_BROWSE_MIME_USR,
                                app_item,
                                data);
@@ -2018,7 +2038,12 @@ static void show_app_menu(GtkWidget* menu, GtkWidget* app_item, PtkFileMenu* dat
     gtk_container_add(GTK_CONTAINER(app_menu), gtk_separator_menu_item_new());
 
     // Help
-    newitem = app_menu_additem(app_menu, "_Help", "help-browser", APP_JOB_HELP, app_item, data);
+    newitem = app_menu_additem(app_menu,
+                               g_strdup("_Help"),
+                               g_strdup("help-browser"),
+                               APP_JOB_HELP,
+                               app_item,
+                               data);
 
     // show menu
     gtk_widget_show_all(GTK_WIDGET(app_menu));
@@ -2323,7 +2348,7 @@ static void create_new_file(PtkFileMenu* data, int create_new)
                                  data->sel_files ? (VFSFileInfo*)data->sel_files->data : NULL,
                                  NULL,
                                  FALSE,
-                                 create_new,
+                                 (PtkRenameMode)create_new,
                                  ao);
     if (result == 0)
     {
