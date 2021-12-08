@@ -12,12 +12,10 @@
 
 #pragma once
 
-#include <stdbool.h>
-
-#include "../vfs/vfs-file-task.hxx"
-
 #include <glib.h>
 #include <gtk/gtk.h>
+
+#include "../vfs/vfs-file-task.hxx"
 
 #include "settings.hxx"
 

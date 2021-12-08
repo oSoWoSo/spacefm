@@ -27,7 +27,7 @@
 #include "ptk-location-view.h"
 #include "ptk-file-browser.h"
 #include "ptk-handler.h"
-#include "ptk-file-task.h"
+#include "ptk-file-task.hxx"
 #include "settings.hxx"
 #include "main-window.h"
 

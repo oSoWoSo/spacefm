@@ -8,7 +8,7 @@
  *
  */
 
-#include "ptk-file-task.h"
+#include "ptk-file-task.hxx"
 #include "ptk-file-misc.h"
 #include "ptk-utils.hxx"
 

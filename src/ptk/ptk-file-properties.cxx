@@ -15,7 +15,7 @@
 #include <pwd.h>
 #include <grp.h>
 
-#include "ptk-file-task.h"
+#include "ptk-file-task.hxx"
 #include "ptk-utils.hxx"
 
 #include "../vfs/vfs-app-desktop.hxx"

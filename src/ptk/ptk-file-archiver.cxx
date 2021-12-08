@@ -11,7 +11,7 @@
  */
 
 #include "ptk-file-archiver.hxx"
-#include "ptk-file-task.h"
+#include "ptk-file-task.hxx"
 #include "ptk-handler.h"
 
 #include "settings.hxx"
