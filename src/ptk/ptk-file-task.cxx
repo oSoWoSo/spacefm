@@ -408,8 +408,8 @@ bool ptk_file_task_cancel(PtkFileTask* ptask)
 
 static void set_button_states(PtkFileTask* ptask)
 {
-    const char* icon;
-    const char* iconset;
+    // const char* icon;
+    // const char* iconset;
     const char* label;
     bool sens = !ptask->complete;
 
@@ -420,25 +420,27 @@ static void set_button_states(PtkFileTask* ptask)
     {
         case VFS_FILE_TASK_PAUSE:
             label = "Q_ueue";
-            iconset = g_strdup("task_que");
-            icon = "list-add";
+            // iconset = g_strdup("task_que");
+            //  icon = "list-add";
             break;
         case VFS_FILE_TASK_QUEUE:
             label = "Res_ume";
-            iconset = g_strdup("task_resume");
-            icon = "media-playback-start";
+            // iconset = g_strdup("task_resume");
+            //  icon = "media-playback-start";
             break;
         default:
             label = "Pa_use";
-            iconset = g_strdup("task_pause");
-            icon = "media-playback-pause";
+            // iconset = g_strdup("task_pause");
+            //  icon = "media-playback-pause";
             break;
     }
     sens = sens && !(ptask->task->type == VFS_FILE_TASK_EXEC && !ptask->task->exec_pid);
 
+    /*
     XSet* set = xset_get(iconset);
     if (set->icon)
         icon = set->icon;
+    */
 
     gtk_widget_set_sensitive(ptask->progress_btn_pause, sens);
     gtk_button_set_label(GTK_BUTTON(ptask->progress_btn_pause), label);

@@ -1680,7 +1680,7 @@ static void ptk_file_browser_update_tab_label(PtkFileBrowser* file_browser)
 {
     GtkWidget* label;
     GtkContainer* hbox;
-    GtkImage* icon;
+    // GtkImage* icon;
     GtkLabel* text;
     GList* children;
     char* name;
@@ -1689,7 +1689,7 @@ static void ptk_file_browser_update_tab_label(PtkFileBrowser* file_browser)
                                        GTK_WIDGET(file_browser));
     hbox = GTK_CONTAINER(gtk_bin_get_child(GTK_BIN(label)));
     children = gtk_container_get_children(hbox);
-    icon = GTK_IMAGE(children->data);
+    // icon = GTK_IMAGE(children->data);
     text = GTK_LABEL(children->next->data);
     g_list_free(children);
 
@@ -2077,12 +2077,12 @@ static void on_history_menu_item_activate(GtkWidget* menu_item, PtkFileBrowser* 
 static GtkWidget* add_history_menu_item(PtkFileBrowser* file_browser, GtkWidget* menu, GList* l)
 {
     GtkWidget* menu_item;
-    GtkWidget* folder_image;
+    // GtkWidget* folder_image;
     char* disp_name;
     disp_name = g_filename_display_basename((char*)l->data);
     menu_item = gtk_menu_item_new_with_label(disp_name);
     g_object_set_data(G_OBJECT(menu_item), "path", l);
-    folder_image = gtk_image_new_from_icon_name("gnome-fs-directory", GTK_ICON_SIZE_MENU);
+    // folder_image = gtk_image_new_from_icon_name("gnome-fs-directory", GTK_ICON_SIZE_MENU);
     g_signal_connect(menu_item,
                      "activate",
                      G_CALLBACK(on_history_menu_item_activate),
@@ -3133,6 +3133,7 @@ static void show_popup_menu(PtkFileBrowser* file_browser, GdkEventButton* event)
         file_path = g_build_filename(cwd, vfs_file_info_get_name(file), NULL);
     }
 
+    /*
     int button;
     uint32_t time;
     if (event)
@@ -3145,6 +3146,7 @@ static void show_popup_menu(PtkFileBrowser* file_browser, GdkEventButton* event)
         button = 0;
         time = gtk_get_current_event_time();
     }
+    */
     char* dir_name = NULL;
     GtkWidget* popup =
         ptk_file_menu_new(file_browser, file_path, file, dir_name ? dir_name : cwd, sel_files);

@@ -2532,7 +2532,7 @@ void fm_main_window_update_tab_label(FMMainWindow* main_window, PtkFileBrowser* 
 {
     GtkWidget* label;
     GtkContainer* hbox;
-    GtkImage* icon;
+    // GtkImage* icon;
     GtkLabel* text;
     GList* children;
     char* name;
@@ -2543,7 +2543,7 @@ void fm_main_window_update_tab_label(FMMainWindow* main_window, PtkFileBrowser* 
     {
         hbox = GTK_CONTAINER(gtk_bin_get_child(GTK_BIN(label)));
         children = gtk_container_get_children(hbox);
-        icon = GTK_IMAGE(children->data);
+        // icon = GTK_IMAGE(children->data);
         text = GTK_LABEL(children->next->data);
 
         // TODO: Change the icon
@@ -2821,9 +2821,9 @@ static bool delayed_focus_file_browser(PtkFileBrowser* file_browser)
 void set_panel_focus(FMMainWindow* main_window, PtkFileBrowser* file_browser)
 {
     int p;
-    int pages;
+    // int pages;
     int cur_tabx;
-    GtkWidget* notebook;
+    // GtkWidget* notebook;
 
     if (!file_browser && !main_window)
         return;
@@ -2834,8 +2834,8 @@ void set_panel_focus(FMMainWindow* main_window, PtkFileBrowser* file_browser)
 
     for (p = 1; p < 5; p++)
     {
-        notebook = mw->panel[p - 1];
-        pages = gtk_notebook_get_n_pages(GTK_NOTEBOOK(notebook));
+        // notebook = mw->panel[p - 1];
+        // pages = gtk_notebook_get_n_pages(GTK_NOTEBOOK(notebook));
         gtk_widget_set_sensitive(mw->panel_image[p - 1], p == mw->curpanel);
     }
 

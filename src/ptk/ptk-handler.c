@@ -3330,7 +3330,7 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
     while ((response = gtk_dialog_run(GTK_DIALOG(hnd->dlg))))
     {
         bool exit_loop = FALSE;
-        const char* help = NULL;
+        // const char* help = NULL;
         switch (response)
         {
             case GTK_RESPONSE_OK:
@@ -3341,6 +3341,7 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
             case GTK_RESPONSE_CANCEL:
                 exit_loop = TRUE;
                 break;
+            /*
             case GTK_RESPONSE_HELP:
                 switch (mode)
                 {
@@ -3360,6 +3361,7 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
                         break;
                 }
                 break;
+            */
             case GTK_RESPONSE_NONE:
                 // Options menu requested
                 break;
