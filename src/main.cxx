@@ -28,7 +28,7 @@
 
 #include "ptk/ptk-utils.hxx"
 #include "ptk/ptk-app-chooser.hxx"
-#include "ptk/ptk-location-view.h"
+#include "ptk/ptk-location-view.hxx"
 
 #include "find-files.hxx"
 #include "pref-dialog.hxx"

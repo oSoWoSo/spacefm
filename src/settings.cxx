@@ -41,7 +41,7 @@
 #include "ptk/ptk-app-chooser.hxx"
 #include "ptk/ptk-handler.h"
 #include "ptk/ptk-file-menu.hxx"
-#include "ptk/ptk-location-view.h"
+#include "ptk/ptk-location-view.hxx"
 
 #define CONFIG_VERSION "38" // 1.0.6
 

@@ -1,5 +1,5 @@
 /*
- * SpaceFM ptk-location-view.h
+ * SpaceFM ptk-location-view.hxx
  *
  * Copyright (C) 2015 IgnorantGuru <ignorantguru@gmx.com>
  * Copyright (C) 2006 Hong Jen Yee (PCMan) <pcman.tw (AT) gmail.com>
@@ -10,10 +10,7 @@
 
 #pragma once
 
-#include <stdbool.h>
-
 #include <gtk/gtk.h>
-#include <sys/types.h>
 
 #include "../vfs/vfs-volume.hxx"
 

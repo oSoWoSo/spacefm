@@ -11,7 +11,7 @@
 
 #include <malloc.h>
 
-#include "ptk/ptk-location-view.h"
+#include "ptk/ptk-location-view.hxx"
 
 #include "main-window.hxx"
 #include "ptk/ptk-utils.hxx"

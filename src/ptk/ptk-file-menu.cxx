@@ -23,7 +23,7 @@
 #include "settings.hxx"
 #include "item-prop.hxx"
 #include "main-window.hxx"
-#include "ptk-location-view.h"
+#include "ptk-location-view.hxx"
 #include "ptk-file-list.hxx"
 
 #include "utils.hxx"

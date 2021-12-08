@@ -155,7 +155,7 @@ sources = [
   'src/ptk/ptk-file-properties.cxx',
   'src/ptk/ptk-file-task.cxx',
   'src/ptk/ptk-handler.c',
-  'src/ptk/ptk-location-view.c',
+  'src/ptk/ptk-location-view.cxx',
   'src/ptk/ptk-path-entry.cxx',
   'src/ptk/ptk-utils.cxx',
 

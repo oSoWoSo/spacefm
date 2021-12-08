@@ -32,7 +32,7 @@
 #include "ptk-app-chooser.hxx"
 #include "ptk-clipboard.hxx"
 #include "ptk-file-archiver.hxx"
-#include "ptk-location-view.h"
+#include "ptk-location-view.hxx"
 #include <gdk/gdkkeysyms.h>
 
 #include "../vfs/vfs-app-desktop.hxx"
