@@ -18,7 +18,7 @@
 
 #include <stdbool.h>
 
-#include "vfs-file-monitor.h"
+#include "vfs-file-monitor.hxx"
 #include <sys/stat.h>
 #include <errno.h>
 
@@ -60,8 +60,8 @@ static bool connect_to_fam()
     g_io_channel_set_flags(fam_io_channel, G_IO_FLAG_NONBLOCK, NULL);
 
     fam_io_watch = g_io_add_watch(fam_io_channel,
-                                  G_IO_IN | G_IO_PRI | G_IO_HUP | G_IO_ERR,
-                                  on_fam_event,
+                                  GIOCondition(G_IO_IN | G_IO_PRI | G_IO_HUP | G_IO_ERR),
+                                  (GIOFunc)on_fam_event,
                                   NULL);
     return TRUE;
 }
@@ -340,7 +340,7 @@ static bool on_fam_event(GIOChannel* channel, GIOCondition cond, void* user_data
         /* FIXME: 2 different paths can have the same wd because of link
          *        This was fixed in spacefm 0.8.7 ?? */
         VFSFileMonitor* monitor = (VFSFileMonitor*)g_hash_table_find(monitor_hash,
-                                                                     find_monitor,
+                                                                     (GHRFunc)find_monitor,
                                                                      GINT_TO_POINTER(ievent->wd));
         if (G_LIKELY(monitor))
         {

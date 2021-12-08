@@ -13,7 +13,7 @@
 #include <gtk/gtk.h>
 
 #include "vfs-mime-type.hxx"
-#include "vfs-file-monitor.h"
+#include "vfs-file-monitor.hxx"
 
 #include "vfs-utils.hxx"
 

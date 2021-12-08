@@ -164,7 +164,7 @@ sources = [
   'src/vfs/vfs-dir.c',
   'src/vfs/vfs-execute.c',
   'src/vfs/vfs-file-info.c',
-  'src/vfs/vfs-file-monitor.c',
+  'src/vfs/vfs-file-monitor.cxx',
   'src/vfs/vfs-file-task.cxx',
   'src/vfs/vfs-mime-type.cxx',
   'src/vfs/vfs-thumbnail-loader.cxx',
