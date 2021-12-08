@@ -15,7 +15,7 @@
 #include <stdbool.h>
 
 #include <gtk/gtk.h>
-#include "../vfs/vfs-mime-type.h"
+#include "../vfs/vfs-mime-type.hxx"
 
 G_BEGIN_DECLS
 

@@ -10,15 +10,12 @@
  *
  */
 
-#include <stdbool.h>
-
-#include "vfs-mime-type.h"
-#include "vfs-file-monitor.h"
-
 #include <sys/stat.h>
-#include <string.h>
 
 #include <gtk/gtk.h>
+
+#include "vfs-mime-type.hxx"
+#include "vfs-file-monitor.h"
 
 #include "vfs-utils.hxx"
 
@@ -86,7 +83,7 @@ static void on_mime_cache_changed(VFSFileMonitor* fm, VFSFileMonitorEvent event,
             mime_cache_reload(cache);
             /* g_debug( "reload cache: %s", file_name ); */
             if (reload_callback_id == 0)
-                reload_callback_id = g_idle_add(vfs_mime_type_reload, NULL);
+                reload_callback_id = g_idle_add((GSourceFunc)vfs_mime_type_reload, NULL);
             break;
         default:
             break;
@@ -157,7 +154,7 @@ VFSMimeType* vfs_mime_type_get_from_file(const char* file_path, const char* base
 VFSMimeType* vfs_mime_type_get_from_type(const char* type)
 {
     g_rw_lock_reader_lock(&mime_hash_lock);
-    VFSMimeType* mime_type = g_hash_table_lookup(mime_hash, type);
+    VFSMimeType* mime_type = (VFSMimeType*)g_hash_table_lookup(mime_hash, type);
     g_rw_lock_reader_unlock(&mime_hash_lock);
 
     if (!mime_type)

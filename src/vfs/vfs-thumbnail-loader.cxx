@@ -24,7 +24,7 @@
 
 #include <libffmpegthumbnailer/videothumbnailerc.h>
 
-#include "vfs-mime-type.h"
+#include "vfs-mime-type.hxx"
 #include "vfs-thumbnail-loader.hxx"
 
 #ifdef USE_XXHASH

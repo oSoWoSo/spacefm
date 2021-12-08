@@ -16,7 +16,7 @@
 #include <gtk/gtk.h>
 #include <glib.h>
 
-#include "../vfs/vfs-mime-type.h"
+#include "../vfs/vfs-mime-type.hxx"
 
 #include "ptk-file-browser.h"
 

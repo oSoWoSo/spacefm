@@ -19,7 +19,7 @@
 #include "spacefm.hxx"
 
 #include "vfs/vfs-file-info.h"
-#include "vfs/vfs-mime-type.h"
+#include "vfs/vfs-mime-type.hxx"
 #include "vfs/vfs-app-desktop.h"
 
 #include "vfs/vfs-file-monitor.h"

@@ -19,7 +19,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "vfs-mime-type.h"
+#include "vfs-mime-type.hxx"
 
 #include <gtk/gtk.h>
 

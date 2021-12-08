@@ -12,8 +12,6 @@
 
 #pragma once
 
-#include <stdbool.h>
-
 #include <gdk/gdk.h>
 
 #include "../mime-type/mime-type.hxx"
