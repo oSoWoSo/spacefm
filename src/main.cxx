@@ -7,26 +7,12 @@
 /* turn on to debug GDK_THREADS_ENTER/GDK_THREADS_LEAVE related deadlocks */
 #undef _DEBUG_THREAD
 
-#include <stdbool.h>
-
-#include <gtk/gtk.h>
-#include <glib.h>
-
-#include <stdlib.h>
-#include <string.h>
+#include <csignal>
 
 #include <sys/socket.h>
 #include <sys/un.h>
-
 #include <sys/sysmacros.h>
-
-#include <signal.h>
-
-#include <unistd.h>
-
 #include <locale.h>
-
-#include <linux/limits.h>
 
 #include "main-window.h"
 
@@ -291,15 +277,18 @@ static void get_socket_name(char* buf, int len)
     g_free(dpy);
 }
 
+static void single_instance_check_fatal(int ret)
+{
+    gdk_notify_startup_complete();
+    exit(ret);
+}
+
 static bool single_instance_check()
 {
-    int ret;
-
     if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
     {
         fprintf(stderr, "spacefm: socket init failure\n");
-        ret = 1;
-        goto _exit;
+        single_instance_check_fatal(EXIT_FAILURE);
     }
 
     struct sockaddr_un addr;
@@ -381,20 +370,18 @@ static bool single_instance_check()
             g_warning("Option --config ignored - an instance is already running");
         shutdown(sock, 2);
         close(sock);
-        ret = 0;
-        goto _exit;
+        single_instance_check_fatal(EXIT_SUCCESS);
     }
 
     /* There is no existing server, and we are in the first instance. */
     unlink(addr.sun_path); /* delete old socket file if it exists. */
     int reuse = 1;
-    ret = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
     if (bind(sock, (struct sockaddr*)&addr, addr_len) == -1)
     {
         g_warning("could not create socket %s", addr.sun_path);
-        // can still run partially without this
-        // ret = 1;
-        // goto _exit;
+        // could still run partially without this
+        single_instance_check_fatal(EXIT_FAILURE);
     }
     else
     {
@@ -407,17 +394,11 @@ static bool single_instance_check()
         if (listen(sock, 5) == -1)
         {
             g_warning("could not listen to socket");
-            // ret = 1;
-            // goto _exit;
+            single_instance_check_fatal(EXIT_FAILURE);
         }
     }
 
     return TRUE;
-
-_exit:
-
-    gdk_notify_startup_complete();
-    exit(ret);
 }
 
 static void single_instance_finalize()
@@ -610,14 +591,19 @@ static void init_folder()
     folder_initialized = TRUE;
 }
 
+static void exit_from_signal(int sig)
+{
+    gtk_main_quit();
+}
+
 static void init_daemon()
 {
     init_folder();
 
     signal(SIGPIPE, SIG_IGN);
-    signal(SIGHUP, (void*)gtk_main_quit);
-    signal(SIGINT, (void*)gtk_main_quit);
-    signal(SIGTERM, (void*)gtk_main_quit);
+    signal(SIGHUP, exit_from_signal);
+    signal(SIGINT, exit_from_signal);
+    signal(SIGTERM, exit_from_signal);
 
     daemon_initialized = TRUE;
 }
@@ -626,7 +612,7 @@ static char* dup_to_absolute_file_path(char** file)
 {
     char* file_path;
     char* real_path;
-    char* cwd_path;
+    void* cwd_path;
     const size_t cwd_size = PATH_MAX;
 
     if (g_str_has_prefix(*file, "file:")) /* It's a URI */
@@ -641,10 +627,10 @@ static char* dup_to_absolute_file_path(char** file)
     cwd_path = malloc(cwd_size);
     if (cwd_path)
     {
-        getcwd(cwd_path, cwd_size);
+        getcwd((char*)cwd_path, cwd_size);
     }
 
-    real_path = vfs_file_resolve_path(cwd_path, file_path);
+    real_path = vfs_file_resolve_path((char*)cwd_path, file_path);
     free(cwd_path);
     cwd_path = NULL;
 
@@ -1075,7 +1061,7 @@ static void open_file(const char* path)
 
     if (!opened)
     {
-        char* error_msg;
+        const char* error_msg;
         if (err && err->message)
         {
             error_msg = err->message;

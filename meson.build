@@ -132,7 +132,7 @@ sources = [
   'src/autosave.cxx',
   'src/find-files.cxx',
   'src/item-prop.cxx',
-  'src/main.c',
+  'src/main.cxx',
   'src/main-window.c',
   'src/pref-dialog.cxx',
   'src/settings.cxx',
