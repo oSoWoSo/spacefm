@@ -16,7 +16,7 @@
 #include <glib.h>
 #include <string.h>
 
-#include "../vfs/vfs-app-desktop.h"
+#include "../vfs/vfs-app-desktop.hxx"
 
 #include "../vfs/vfs-async-task.hxx"
 

@@ -26,7 +26,7 @@
 #include "ptk-file-task.h"
 #include "ptk-utils.h"
 
-#include "../vfs/vfs-app-desktop.h"
+#include "../vfs/vfs-app-desktop.hxx"
 
 #include "ptk-app-chooser.h"
 #include "utils.hxx"

@@ -22,7 +22,7 @@
 
 #include <gdk/gdkkeysyms.h>
 
-#include "../vfs/vfs-app-desktop.h"
+#include "../vfs/vfs-app-desktop.hxx"
 
 #include "ptk-file-misc.h"
 #include "ptk-file-archiver.h"

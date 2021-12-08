@@ -34,7 +34,7 @@
 #include "extern.hxx"
 #include "utils.hxx"
 
-#include "vfs/vfs-app-desktop.h"
+#include "vfs/vfs-app-desktop.hxx"
 #include "vfs/vfs-utils.hxx"
 
 #include "ptk/ptk-utils.h"

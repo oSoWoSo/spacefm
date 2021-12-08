@@ -159,7 +159,7 @@ sources = [
   'src/ptk/ptk-path-entry.c',
   'src/ptk/ptk-utils.c',
 
-  'src/vfs/vfs-app-desktop.c',
+  'src/vfs/vfs-app-desktop.cxx',
   'src/vfs/vfs-async-task.cxx',
   'src/vfs/vfs-dir.cxx',
   'src/vfs/vfs-execute.cxx',

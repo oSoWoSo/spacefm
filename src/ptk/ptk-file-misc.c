@@ -35,7 +35,7 @@
 #include "ptk-location-view.h"
 #include <gdk/gdkkeysyms.h>
 
-#include "../vfs/vfs-app-desktop.h"
+#include "../vfs/vfs-app-desktop.hxx"
 #include "../vfs/vfs-execute.hxx"
 
 #include "settings.hxx"

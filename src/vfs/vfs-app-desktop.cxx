@@ -10,18 +10,13 @@
  *
  */
 
-#include <stdbool.h>
-
-#include "vfs-app-desktop.h"
-
-#include <string.h>
-
-#include "vfs-execute.hxx"
-
-#include "vfs-utils.hxx"
-
 // sfm breaks vfs independence for exec_in_terminal
 #include "../ptk/ptk-file-task.h"
+
+#include "vfs-execute.hxx"
+#include "vfs-utils.hxx"
+
+#include "vfs-app-desktop.hxx"
 
 static const char desktop_entry_name[] = "Desktop Entry";
 
@@ -433,7 +428,7 @@ bool vfs_app_desktop_open_files(GdkScreen* screen, const char* working_dir, VFSA
                                            argv,
                                            NULL,
                                            sn_desc,
-                                           VFS_EXEC_DEFAULT_FLAGS,
+                                           (GSpawnFlags)VFS_EXEC_DEFAULT_FLAGS,
                                            vfs_app_desktop_uses_startup_notify(app),
                                            err);
                         g_strfreev(argv);
@@ -477,8 +472,8 @@ bool vfs_app_desktop_open_files(GdkScreen* screen, const char* working_dir, VFSA
                                                argv,
                                                NULL,
                                                sn_desc,
-                                               G_SPAWN_SEARCH_PATH | G_SPAWN_STDOUT_TO_DEV_NULL |
-                                                   G_SPAWN_STDERR_TO_DEV_NULL,
+                                               GSpawnFlags(G_SPAWN_SEARCH_PATH | G_SPAWN_STDOUT_TO_DEV_NULL |
+                                                   G_SPAWN_STDERR_TO_DEV_NULL),
                                                vfs_app_desktop_uses_startup_notify(app),
                                                err);
                             g_strfreev(argv);

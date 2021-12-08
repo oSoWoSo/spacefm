@@ -15,7 +15,7 @@
 
 #include "settings.hxx"
 
-#include "vfs-app-desktop.h"
+#include "vfs-app-desktop.hxx"
 #include "vfs-thumbnail-loader.hxx"
 #include "vfs-utils.hxx"
 

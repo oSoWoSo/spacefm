@@ -20,7 +20,7 @@
 
 #include "vfs/vfs-file-info.hxx"
 #include "vfs/vfs-mime-type.hxx"
-#include "vfs/vfs-app-desktop.h"
+#include "vfs/vfs-app-desktop.hxx"
 
 #include "vfs/vfs-file-monitor.hxx"
 #include "vfs/vfs-volume.hxx"
