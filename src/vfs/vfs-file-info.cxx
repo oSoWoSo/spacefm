@@ -10,22 +10,16 @@
  *
  */
 
-#include <stdbool.h>
-#include <stdint.h>
-
-#include "vfs-file-info.h"
-
-#include <glib.h>
-
 #include <grp.h>
 #include <pwd.h>
 
-#include <string.h>
 #include "settings.hxx"
 
 #include "vfs-app-desktop.h"
 #include "vfs-thumbnail-loader.hxx"
 #include "vfs-utils.hxx"
+
+#include "vfs-file-info.hxx"
 
 static int big_thumb_size = 48, small_thumb_size = 20;
 static bool utf8_file_name = FALSE;
@@ -565,7 +559,7 @@ bool vfs_file_info_open_file(VFSFileInfo* fi, const char* file_path, GError** er
         ret = g_spawn_async(NULL,
                             argv,
                             NULL,
-                            G_SPAWN_STDOUT_TO_DEV_NULL | G_SPAWN_SEARCH_PATH,
+                            GSpawnFlags(G_SPAWN_STDOUT_TO_DEV_NULL | G_SPAWN_SEARCH_PATH),
                             NULL,
                             NULL,
                             NULL,
@@ -651,7 +645,7 @@ void vfs_file_info_load_special_info(VFSFileInfo* fi, const char* file_path)
             desktop_dir = vfs_get_desktop_dir();
         char* file_dir = g_path_get_dirname(file_path);
 
-        fi->flags |= VFS_FILE_INFO_DESKTOP_ENTRY;
+        fi->flags = (VFSFileInfoFlag)(fi->flags | VFS_FILE_INFO_DESKTOP_ENTRY);
         VFSAppDesktop* desktop = vfs_app_desktop_new(file_path);
 
         // MOD  display real filenames of .desktop files not in desktop directory

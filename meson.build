@@ -163,7 +163,7 @@ sources = [
   'src/vfs/vfs-async-task.c',
   'src/vfs/vfs-dir.c',
   'src/vfs/vfs-execute.cxx',
-  'src/vfs/vfs-file-info.c',
+  'src/vfs/vfs-file-info.cxx',
   'src/vfs/vfs-file-monitor.cxx',
   'src/vfs/vfs-file-task.cxx',
   'src/vfs/vfs-mime-type.cxx',

@@ -12,13 +12,6 @@
 
 #pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include "vfs-mime-type.hxx"
 
 #include <gtk/gtk.h>

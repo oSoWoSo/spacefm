@@ -18,7 +18,7 @@
 #include <glib-object.h>
 
 #include "vfs-file-monitor.hxx"
-#include "vfs-file-info.h"
+#include "vfs-file-info.hxx"
 #include "vfs-async-task.h"
 
 G_BEGIN_DECLS

@@ -15,7 +15,7 @@
 #include <gtk/gtk.h>
 #include "ptk-file-browser.h"
 
-#include "../vfs/vfs-file-info.h"
+#include "../vfs/vfs-file-info.hxx"
 
 G_BEGIN_DECLS
 
