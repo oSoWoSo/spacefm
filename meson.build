@@ -139,7 +139,7 @@ sources = [
   'src/spacefm.cxx',
   'src/utils.cxx',
 
-  'src/mime-type/mime-action.c',
+  'src/mime-type/mime-action.cxx',
   'src/mime-type/mime-cache.c',
   'src/mime-type/mime-type.c',
 

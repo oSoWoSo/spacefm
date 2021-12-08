@@ -28,7 +28,7 @@
 #include <sys/types.h>
 #include <glib.h>
 
-#include "mime-action.h"
+#include "mime-action.hxx"
 #include "mime-cache.h"
 
 G_BEGIN_DECLS

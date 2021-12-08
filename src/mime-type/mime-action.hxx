@@ -1,5 +1,5 @@
 /*
- *      mime-action.h
+ *      mime-action.hxx
  *
  *      Copyright 2007 PCMan <pcman.tw@gmail.com>
  *
@@ -20,8 +20,6 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
 
 #include <glib.h>
 
