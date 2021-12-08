@@ -151,7 +151,7 @@ sources = [
   'src/ptk/ptk-file-browser.c',
   'src/ptk/ptk-file-list.cxx',
   'src/ptk/ptk-file-menu.cxx',
-  'src/ptk/ptk-file-misc.c',
+  'src/ptk/ptk-file-misc.cxx',
   'src/ptk/ptk-file-properties.cxx',
   'src/ptk/ptk-file-task.cxx',
   'src/ptk/ptk-handler.cxx',

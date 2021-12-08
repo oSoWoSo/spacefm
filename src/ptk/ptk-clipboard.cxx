@@ -9,7 +9,7 @@
  */
 
 #include "ptk-file-task.hxx"
-#include "ptk-file-misc.h"
+#include "ptk-file-misc.hxx"
 #include "ptk-utils.hxx"
 
 #include "utils.hxx"

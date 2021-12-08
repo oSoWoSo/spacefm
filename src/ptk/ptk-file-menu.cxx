@@ -15,7 +15,7 @@
 
 #include "../vfs/vfs-app-desktop.hxx"
 
-#include "ptk-file-misc.h"
+#include "ptk-file-misc.hxx"
 #include "ptk-file-archiver.hxx"
 #include "ptk-handler.hxx"
 #include "ptk-clipboard.hxx"
