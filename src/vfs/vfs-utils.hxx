@@ -1,5 +1,5 @@
 /*
- *      vfs-utils.h
+ *      vfs-utils.hxx
  *
  *      Copyright 2008 PCMan <pcman.tw@gmail.com>
  *
@@ -22,6 +22,7 @@
 #pragma once
 
 #include <gtk/gtk.h>
+#include <glib.h>
 
 G_BEGIN_DECLS
 

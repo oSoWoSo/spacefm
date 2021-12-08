@@ -31,7 +31,7 @@
 #include "settings.hxx"
 #include "main-window.h"
 
-#include "../vfs/vfs-utils.h"
+#include "../vfs/vfs-utils.hxx"
 
 #include "utils.hxx"
 

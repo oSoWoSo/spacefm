@@ -18,7 +18,7 @@
 
 #include "vfs-execute.h"
 
-#include "vfs-utils.h"
+#include "vfs-utils.hxx"
 
 // sfm breaks vfs independence for exec_in_terminal
 #include "../ptk/ptk-file-task.h"

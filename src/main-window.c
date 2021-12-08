@@ -31,7 +31,7 @@
 /* FIXME: statvfs support should be moved to src/vfs */
 #include <sys/statvfs.h>
 
-#include "vfs/vfs-utils.h"
+#include "vfs/vfs-utils.hxx"
 #include "ptk/ptk-clipboard.h"
 #include "ptk/ptk-handler.h"
 

@@ -25,7 +25,7 @@
 
 #include "vfs-app-desktop.h"
 #include "vfs-thumbnail-loader.hxx"
-#include "vfs-utils.h"
+#include "vfs-utils.hxx"
 
 static int big_thumb_size = 48, small_thumb_size = 20;
 static bool utf8_file_name = FALSE;

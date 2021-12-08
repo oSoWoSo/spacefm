@@ -19,20 +19,18 @@
  *      MA 02110-1301, USA.
  */
 
-#include <string.h>
-
-#include "vfs-utils.h"
+#include "vfs-utils.hxx"
 
 GdkPixbuf* vfs_load_icon(GtkIconTheme* theme, const char* icon_name, int size)
 {
     if (!icon_name)
         return NULL;
 
-    GtkIconInfo* inf =
-        gtk_icon_theme_lookup_icon(theme,
-                                   icon_name,
-                                   size,
-                                   GTK_ICON_LOOKUP_USE_BUILTIN | GTK_ICON_LOOKUP_FORCE_SIZE);
+    GtkIconInfo* inf = gtk_icon_theme_lookup_icon(
+        theme,
+        icon_name,
+        size,
+        GtkIconLookupFlags(GTK_ICON_LOOKUP_USE_BUILTIN | GTK_ICON_LOOKUP_FORCE_SIZE));
 
     if (!inf && icon_name[0] == '/')
         return gdk_pixbuf_new_from_file_at_size(icon_name, size, size, NULL);

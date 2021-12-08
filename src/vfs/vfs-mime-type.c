@@ -20,7 +20,7 @@
 
 #include <gtk/gtk.h>
 
-#include "vfs-utils.h"
+#include "vfs-utils.hxx"
 
 static GHashTable* mime_hash = NULL;
 static GRWLock mime_hash_lock;

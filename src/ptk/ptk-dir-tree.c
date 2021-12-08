@@ -17,7 +17,7 @@
 
 #include "settings.hxx"
 
-#include "../vfs/vfs-utils.h"
+#include "../vfs/vfs-utils.hxx"
 
 typedef struct PtkDirTreeNode
 {
