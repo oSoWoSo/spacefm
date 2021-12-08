@@ -12,7 +12,7 @@
 #include <gtk/gtk.h>
 #include <sys/types.h>
 
-#include "../vfs/vfs-dir.h"
+#include "../vfs/vfs-dir.hxx"
 
 G_BEGIN_DECLS
 

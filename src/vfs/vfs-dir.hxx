@@ -12,10 +12,7 @@
 
 #pragma once
 
-#include <stdbool.h>
-
 #include <glib.h>
-#include <glib-object.h>
 
 #include "vfs-file-monitor.hxx"
 #include "vfs-file-info.hxx"

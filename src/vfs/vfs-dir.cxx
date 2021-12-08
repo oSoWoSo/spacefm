@@ -9,23 +9,17 @@
  *
  */
 
-#include <stdbool.h>
-
-#include "vfs-dir.h"
-#include "vfs-thumbnail-loader.hxx"
-
-#include <string.h>
-
 #include <fcntl.h>
 
 #if defined(__GLIBC__)
 #include <malloc.h>
 #endif
 
-#include <unistd.h>
 #include "vfs-volume.hxx"
-
+#include "vfs-thumbnail-loader.hxx"
 #include "utils.hxx"
+
+#include "vfs-dir.hxx"
 
 static void vfs_dir_class_init(VFSDirClass* klass);
 static void vfs_dir_init(VFSDir* dir);
@@ -93,7 +87,7 @@ GType vfs_dir_get_type(void)
             (GInstanceInitFunc)vfs_dir_init,
             NULL,
         };
-        type = g_type_register_static(G_TYPE_OBJECT, "VFSDir", &info, 0);
+        type = g_type_register_static(G_TYPE_OBJECT, "VFSDir", &info, (GTypeFlags)0);
     }
     return type;
 }
@@ -103,7 +97,7 @@ static void vfs_dir_class_init(VFSDirClass* klass)
     GObjectClass* object_class;
 
     object_class = (GObjectClass*)klass;
-    parent_class = g_type_class_peek_parent(klass);
+    parent_class = (GObjectClass*)g_type_class_peek_parent(klass);
 
     object_class->set_property = vfs_dir_set_property;
     object_class->get_property = vfs_dir_get_property;
@@ -184,7 +178,7 @@ static void vfs_dir_class_init(VFSDirClass* klass)
 /* constructor */
 static void vfs_dir_init(VFSDir* dir)
 {
-    dir->mutex = g_malloc(sizeof(GMutex));
+    dir->mutex = (GMutex*)g_malloc(sizeof(GMutex));
     g_mutex_init(dir->mutex);
 }
 
@@ -216,7 +210,7 @@ static void vfs_dir_finalize(GObject* obj)
 
     if (G_UNLIKELY(dir->task))
     {
-        g_signal_handlers_disconnect_by_func(dir->task, on_list_task_finished, dir);
+        g_signal_handlers_disconnect_by_func(dir->task, (void*)on_list_task_finished, dir);
         /* FIXME: should we generate a "file-list" signal to indicate the dir loading was cancelled?
          */
         // printf("spacefm: vfs_dir_finalize -> vfs_async_task_cancel\n");
@@ -334,7 +328,7 @@ void vfs_dir_emit_file_created(VFSDir* dir, const char* file_name, bool force)
     if (change_notify_timeout == 0)
     {
         change_notify_timeout =
-            g_timeout_add_full(G_PRIORITY_LOW, 200, notify_file_change, NULL, NULL);
+            g_timeout_add_full(G_PRIORITY_LOW, 200, (GSourceFunc)notify_file_change, NULL, NULL);
     }
 }
 
@@ -365,7 +359,7 @@ void vfs_dir_emit_file_deleted(VFSDir* dir, const char* file_name, VFSFileInfo* 
             if (change_notify_timeout == 0)
             {
                 change_notify_timeout =
-                    g_timeout_add_full(G_PRIORITY_LOW, 200, notify_file_change, NULL, NULL);
+                    g_timeout_add_full(G_PRIORITY_LOW, 200, (GSourceFunc)notify_file_change, NULL, NULL);
             }
         }
         else
@@ -402,7 +396,7 @@ void vfs_dir_emit_file_changed(VFSDir* dir, const char* file_name, VFSFileInfo* 
                 if (change_notify_timeout == 0)
                 {
                     change_notify_timeout =
-                        g_timeout_add_full(G_PRIORITY_LOW, 100, notify_file_change, NULL, NULL);
+                        g_timeout_add_full(G_PRIORITY_LOW, 100, (GSourceFunc)notify_file_change, NULL, NULL);
                 }
             }
             else if (G_LIKELY(update_file_info(dir, file))) // update file info the first time
@@ -411,7 +405,7 @@ void vfs_dir_emit_file_changed(VFSDir* dir, const char* file_name, VFSFileInfo* 
                 if (change_notify_timeout == 0)
                 {
                     change_notify_timeout =
-                        g_timeout_add_full(G_PRIORITY_LOW, 500, notify_file_change, NULL, NULL);
+                        g_timeout_add_full(G_PRIORITY_LOW, 500, (GSourceFunc)notify_file_change, NULL, NULL);
                 }
                 g_signal_emit(dir, signals[FILE_CHANGED_SIGNAL], 0, file);
             }
@@ -500,7 +494,7 @@ static char* gethidden(const char* path) // MOD added
         struct stat s; // skip stat
         if (G_LIKELY(fstat(fd, &s) != -1))
         {
-            char* buf = g_malloc(s.st_size + 1);
+            char* buf = (char*)g_malloc(s.st_size + 1);
             if ((s.st_size = read(fd, buf, s.st_size)) != -1)
             {
                 buf[s.st_size] = 0;
@@ -518,7 +512,7 @@ static char* gethidden(const char* path) // MOD added
 static bool ishidden(const char* hidden, const char* file_name) // MOD added
 {                                                               // assumes hidden,file_name != NULL
     char c;
-    char* str = strstr(hidden, file_name);
+    char* str = (char*)strstr(hidden, file_name);
     while (str)
     {
         if (str == hidden)
@@ -847,7 +841,7 @@ VFSDir* vfs_dir_get_by_path_soft(const char* path)
     if (G_UNLIKELY(!dir_hash || !path))
         return NULL;
 
-    VFSDir* dir = g_hash_table_lookup(dir_hash, path);
+    VFSDir* dir = (VFSDir*)g_hash_table_lookup(dir_hash, path);
     if (dir)
         g_object_ref(dir);
     return dir;
@@ -870,7 +864,7 @@ VFSDir* vfs_dir_get_by_path(const char* path)
     }
     else
     {
-        dir = g_hash_table_lookup(dir_hash, path);
+        dir = (VFSDir*)g_hash_table_lookup(dir_hash, path);
     }
 
     if (G_UNLIKELY(!mime_cb))

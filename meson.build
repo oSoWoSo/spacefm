@@ -161,7 +161,7 @@ sources = [
 
   'src/vfs/vfs-app-desktop.c',
   'src/vfs/vfs-async-task.c',
-  'src/vfs/vfs-dir.c',
+  'src/vfs/vfs-dir.cxx',
   'src/vfs/vfs-execute.cxx',
   'src/vfs/vfs-file-info.cxx',
   'src/vfs/vfs-file-monitor.cxx',
