@@ -25,7 +25,7 @@
 #include <stdint.h>
 
 #include "mime-type.h"
-#include "mime-cache.h"
+#include "mime-cache.hxx"
 
 #include <string.h>
 

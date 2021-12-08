@@ -29,7 +29,7 @@
 #include <glib.h>
 
 #include "mime-action.hxx"
-#include "mime-cache.h"
+#include "mime-cache.hxx"
 
 G_BEGIN_DECLS
 

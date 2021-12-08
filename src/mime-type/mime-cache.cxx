@@ -19,22 +19,17 @@
  *      MA 02110-1301, USA.
  */
 
-#include <stdbool.h>
-#include <stdint.h>
-
-#include "mime-cache.h"
-
-#include <glib.h>
-
-#include <string.h>
+#include <cstdint>
 
 #ifdef HAVE_MMAP
 #include <sys/mman.h>
 #endif
 
+#include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <fnmatch.h>
+
+#include "mime-cache.hxx"
 
 #define LIB_MAJOR_VERSION 1
 /* FIXME: since mime-cache 1.2, weight is splitted into three parts
@@ -115,7 +110,7 @@ bool mime_cache_load(MimeCache* cache, const char* file_path)
 
     char* buffer = NULL;
 #ifdef HAVE_MMAP
-    buffer = mmap(NULL, statbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
+    buffer = (char*)mmap(NULL, statbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
 #else
     buffer = g_malloc(statbuf.st_size);
     if (buffer)
