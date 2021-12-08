@@ -148,7 +148,7 @@ sources = [
   'src/ptk/ptk-dir-tree.cxx',
   'src/ptk/ptk-dir-tree-view.cxx',
   'src/ptk/ptk-file-archiver.cxx',
-  'src/ptk/ptk-file-browser.c',
+  'src/ptk/ptk-file-browser.cxx',
   'src/ptk/ptk-file-list.cxx',
   'src/ptk/ptk-file-menu.cxx',
   'src/ptk/ptk-file-misc.cxx',
@@ -193,7 +193,7 @@ spacefm = build_target(
     lib_ffmpeg,
     lib_xxhash,
   ],
-  c_pch:   'src/pch/c_pch.h',
+  # c_pch:   'src/pch/c_pch.h',
   cpp_pch: 'src/pch/cxx_pch.hxx',
 )
 

@@ -7,10 +7,9 @@
 #include <malloc.h>
 
 #include <fnmatch.h>
+#include <fcntl.h>
 
 #include <exo/exo.h>
-
-#include "settings.hxx"
 
 #include "ptk-utils.hxx"
 #include "ptk-file-misc.hxx"
@@ -133,10 +132,10 @@ static void rebuild_side_toolbox(GtkWidget* widget, PtkFileBrowser* file_browser
 static unsigned int signals[N_SIGNALS] = {0};
 
 static unsigned int folder_view_auto_scroll_timer = 0;
-static GtkDirectionType folder_view_auto_scroll_direction = 0;
+static GtkDirectionType folder_view_auto_scroll_direction = GTK_DIR_TAB_FORWARD;
 
 /*  Drag & Drop/Clipboard targets  */
-static GtkTargetEntry drag_targets[] = {{"text/uri-list", 0, 0}};
+static GtkTargetEntry drag_targets[] = {{g_strdup("text/uri-list"), 0, 0}};
 
 #define GDK_ACTION_ALL (GDK_ACTION_MOVE | GDK_ACTION_COPY | GDK_ACTION_LINK)
 
@@ -163,8 +162,7 @@ GType ptk_file_browser_get_type()
             (GInstanceInitFunc)ptk_file_browser_init,
             NULL,
         };
-        // type = g_type_register_static ( GTK_TYPE_HPANED, "PtkFileBrowser", &info, 0 );
-        type = g_type_register_static(GTK_TYPE_VBOX, "PtkFileBrowser", &info, 0);
+        type = g_type_register_static(GTK_TYPE_VBOX, "PtkFileBrowser", &info, (GTypeFlags)0);
     }
     return type;
 }
@@ -241,7 +239,7 @@ static void g_cclosure_marshal_VOID__POINTER_INT(GClosure* closure, GValue* retu
 static void ptk_file_browser_class_init(PtkFileBrowserClass* klass)
 {
     GObjectClass* object_class = (GObjectClass*)klass;
-    parent_class = g_type_class_peek_parent(klass);
+    parent_class = (GtkPanedClass*)g_type_class_peek_parent(klass);
 
     object_class->set_property = ptk_file_browser_set_property;
     object_class->get_property = ptk_file_browser_get_property;
@@ -554,10 +552,12 @@ static void on_address_bar_activate(GtkWidget* entry, PtkFileBrowser* file_brows
         save_command_history(GTK_ENTRY(entry));
 
         // task
-        char* task_name = g_strdup(gtk_entry_get_text(GTK_ENTRY(entry)));
-        const char* cwd = ptk_file_browser_get_cwd(file_browser);
-        PtkFileTask* task =
-            ptk_file_exec_new(task_name, cwd, GTK_WIDGET(file_browser), file_browser->task_view);
+        char* task_name;
+        const char* cwd;
+        task_name = g_strdup(gtk_entry_get_text(GTK_ENTRY(entry)));
+        cwd = ptk_file_browser_get_cwd(file_browser);
+        PtkFileTask* task;
+        task = ptk_file_exec_new(task_name, cwd, GTK_WIDGET(file_browser), file_browser->task_view);
         g_free(task_name);
         // don't free cwd!
         task->task->exec_browser = file_browser;
@@ -757,8 +757,9 @@ void ptk_file_browser_update_toolbar_widgets(PtkFileBrowser* file_browser, void*
     switch (tool_type)
     {
         case XSET_TOOL_UP:
+            const char* cwd;
             x = 0;
-            const char* cwd = ptk_file_browser_get_cwd(file_browser);
+            cwd = ptk_file_browser_get_cwd(file_browser);
             b = !cwd || (cwd && strcmp(cwd, "/"));
             break;
         case XSET_TOOL_BACK:
@@ -867,7 +868,8 @@ static void rebuild_toolbox(GtkWidget* widget, PtkFileBrowser* file_browser)
     gtk_box_pack_start(GTK_BOX(file_browser->toolbox), file_browser->toolbar, TRUE, TRUE, 0);
     gtk_toolbar_set_style(GTK_TOOLBAR(file_browser->toolbar), GTK_TOOLBAR_ICONS);
     if (app_settings.tool_icon_size > 0 && app_settings.tool_icon_size <= GTK_ICON_SIZE_DIALOG)
-        gtk_toolbar_set_icon_size(GTK_TOOLBAR(file_browser->toolbar), app_settings.tool_icon_size);
+        gtk_toolbar_set_icon_size(GTK_TOOLBAR(file_browser->toolbar),
+                                  (GtkIconSize)app_settings.tool_icon_size);
 
     // fill left toolbar
     xset_fill_toolbar(GTK_WIDGET(file_browser),
@@ -919,7 +921,7 @@ static void rebuild_side_toolbox(GtkWidget* widget, PtkFileBrowser* file_browser
     gtk_toolbar_set_style(GTK_TOOLBAR(file_browser->side_toolbar), GTK_TOOLBAR_ICONS);
     if (app_settings.tool_icon_size > 0 && app_settings.tool_icon_size <= GTK_ICON_SIZE_DIALOG)
         gtk_toolbar_set_icon_size(GTK_TOOLBAR(file_browser->side_toolbar),
-                                  app_settings.tool_icon_size);
+                                  (GtkIconSize)app_settings.tool_icon_size);
     // fill side toolbar
     xset_fill_toolbar(GTK_WIDGET(file_browser),
                       file_browser,
@@ -1032,21 +1034,24 @@ static void on_status_bar_popup(GtkWidget* widget, GtkWidget* menu, PtkFileBrows
         g_strdup_printf("separator status_border status_text panel%d_icon_status status_middle",
                         file_browser->mypanel);
 
-    xset_set_cb("status_border", on_status_effect_change, file_browser);
-    xset_set_cb("status_text", on_status_effect_change, file_browser);
-    xset_set_cb_panel(file_browser->mypanel, "icon_status", on_status_effect_change, file_browser);
+    xset_set_cb("status_border", (GFunc)on_status_effect_change, file_browser);
+    xset_set_cb("status_text", (GFunc)on_status_effect_change, file_browser);
+    xset_set_cb_panel(file_browser->mypanel,
+                      "icon_status",
+                      (GFunc)on_status_effect_change,
+                      file_browser);
     XSet* set = xset_get("status_name");
-    xset_set_cb("status_name", on_status_middle_click_config, set);
+    xset_set_cb("status_name", (GFunc)on_status_middle_click_config, set);
     xset_set_ob2(set, NULL, NULL);
     XSet* set_radio = set;
     set = xset_get("status_path");
-    xset_set_cb("status_path", on_status_middle_click_config, set);
+    xset_set_cb("status_path", (GFunc)on_status_middle_click_config, set);
     xset_set_ob2(set, NULL, set_radio);
     set = xset_get("status_info");
-    xset_set_cb("status_info", on_status_middle_click_config, set);
+    xset_set_cb("status_info", (GFunc)on_status_middle_click_config, set);
     xset_set_ob2(set, NULL, set_radio);
     set = xset_get("status_hide");
-    xset_set_cb("status_hide", on_status_middle_click_config, set);
+    xset_set_cb("status_hide", (GFunc)on_status_middle_click_config, set);
     xset_set_ob2(set, NULL, set_radio);
 
     xset_add_menu(file_browser, menu, accel_group, desc);
@@ -1139,8 +1144,8 @@ static void ptk_file_browser_init(PtkFileBrowser* file_browser)
     gtk_widget_set_can_focus(GTK_WIDGET(file_browser->status_label), FALSE);
     gtk_widget_set_hexpand(GTK_WIDGET(file_browser->status_label), TRUE);
     gtk_widget_set_halign(GTK_WIDGET(file_browser->status_label), GTK_ALIGN_FILL);
-    gtk_widget_set_halign(GTK_MISC(file_browser->status_label), GTK_ALIGN_START);
-    gtk_widget_set_valign(GTK_MISC(file_browser->status_label), GTK_ALIGN_CENTER);
+    gtk_widget_set_halign(GTK_WIDGET(file_browser->status_label), GTK_ALIGN_START);
+    gtk_widget_set_valign(GTK_WIDGET(file_browser->status_label), GTK_ALIGN_CENTER);
 
     g_signal_connect(G_OBJECT(file_browser->status_label),
                      "button-press-event",
@@ -1666,7 +1671,7 @@ GtkWidget* ptk_file_browser_new(int curpanel, GtkWidget* notebook, GtkWidget* ta
     if (set->icon && set->icon[0] != '\0')
         icon_name = set->icon;
     else
-        icon_name = "gtk-yes";
+        icon_name = g_strdup("gtk-yes");
     gtk_image_set_from_icon_name(GTK_IMAGE(file_browser->status_image),
                                  icon_name,
                                  GTK_ICON_SIZE_MENU);
@@ -1781,14 +1786,14 @@ void ptk_file_browser_select_last(PtkFileBrowser* file_browser) // MOD added
         bool firstsel = TRUE;
         if (file_browser->view_mode == PTK_FB_LIST_VIEW)
             tree_sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(file_browser->folder_view));
-        for (l = element->data; l; l = l->next)
+        for (l = (GList*)element->data; l; l = l->next)
         {
             if (l->data)
             {
                 // g_debug ("find a file");
                 GtkTreeIter it;
                 GtkTreePath* tp;
-                VFSFileInfo* file = l->data;
+                VFSFileInfo* file = (VFSFileInfo*)l->data;
                 if (ptk_file_list_find_iter(list, &it, file))
                 {
                     // g_debug ("found file");
@@ -1926,8 +1931,8 @@ bool ptk_file_browser_chdir(PtkFileBrowser* file_browser, const char* folder_pat
     if (file_browser->curhistsel && file_browser->curhistsel->data)
     {
         // g_debug ("free curhistsel");
-        g_list_foreach(file_browser->curhistsel->data, (GFunc)vfs_file_info_unref, NULL);
-        g_list_free(file_browser->curhistsel->data);
+        g_list_foreach((GList*)file_browser->curhistsel->data, (GFunc)vfs_file_info_unref, NULL);
+        g_list_free((GList*)file_browser->curhistsel->data);
     }
     if (file_browser->curhistsel)
     {
@@ -1964,8 +1969,8 @@ bool ptk_file_browser_chdir(PtkFileBrowser* file_browser, const char* folder_pat
                         if (l->data)
                         {
                             // g_debug("free forward item");
-                            g_list_foreach(l->data, (GFunc)vfs_file_info_unref, NULL);
-                            g_list_free(l->data);
+                            g_list_foreach((GList*)l->data, (GFunc)vfs_file_info_unref, NULL);
+                            g_list_free((GList*)l->data);
                         }
                     }
                     g_list_free(file_browser->curhistsel->next);
@@ -2190,7 +2195,7 @@ static void on_sort_col_changed(GtkTreeSortable* sortable, PtkFileBrowser* file_
         default:
             break;
     }
-    file_browser->sort_order = col;
+    file_browser->sort_order = (PtkFBSortOrder)col;
     // MOD enable following to make column click permanent sort
     //    app_settings.sort_order = col;
     //    if ( file_browser )
@@ -2471,7 +2476,7 @@ void ptk_file_browser_invert_selection(GtkWidget* item, PtkFileBrowser* file_bro
                                             0,
                                             0,
                                             NULL,
-                                            on_folder_view_item_sel_change,
+                                            (void*)on_folder_view_item_sel_change,
                                             NULL);
             gtk_tree_model_foreach(model, (GtkTreeModelForeachFunc)invert_selection, file_browser);
             g_signal_handlers_unblock_matched(file_browser->folder_view,
@@ -2479,7 +2484,7 @@ void ptk_file_browser_invert_selection(GtkWidget* item, PtkFileBrowser* file_bro
                                               0,
                                               0,
                                               NULL,
-                                              on_folder_view_item_sel_change,
+                                              (void*)on_folder_view_item_sel_change,
                                               NULL);
             on_folder_view_item_sel_change(EXO_ICON_VIEW(file_browser->folder_view), file_browser);
             break;
@@ -2490,7 +2495,7 @@ void ptk_file_browser_invert_selection(GtkWidget* item, PtkFileBrowser* file_bro
                                             0,
                                             0,
                                             NULL,
-                                            on_folder_view_item_sel_change,
+                                            (void*)on_folder_view_item_sel_change,
                                             NULL);
             model = gtk_tree_view_get_model(GTK_TREE_VIEW(file_browser->folder_view));
             gtk_tree_model_foreach(model, (GtkTreeModelForeachFunc)invert_selection, file_browser);
@@ -2499,7 +2504,7 @@ void ptk_file_browser_invert_selection(GtkWidget* item, PtkFileBrowser* file_bro
                                               0,
                                               0,
                                               NULL,
-                                              on_folder_view_item_sel_change,
+                                              (void*)on_folder_view_item_sel_change,
                                               NULL);
             on_folder_view_item_sel_change((ExoIconView*)tree_sel, file_browser);
             break;
@@ -2563,7 +2568,7 @@ void ptk_file_browser_select_pattern(GtkWidget* item, PtkFileBrowser* file_brows
                                             0,
                                             0,
                                             NULL,
-                                            on_folder_view_item_sel_change,
+                                            (void*)on_folder_view_item_sel_change,
                                             NULL);
             break;
         case PTK_FB_LIST_VIEW:
@@ -2573,7 +2578,7 @@ void ptk_file_browser_select_pattern(GtkWidget* item, PtkFileBrowser* file_brows
                                             0,
                                             0,
                                             NULL,
-                                            on_folder_view_item_sel_change,
+                                            (void*)on_folder_view_item_sel_change,
                                             NULL);
             model = gtk_tree_view_get_model(GTK_TREE_VIEW(file_browser->folder_view));
             break;
@@ -2679,7 +2684,7 @@ void ptk_file_browser_select_pattern(GtkWidget* item, PtkFileBrowser* file_brows
                                               0,
                                               0,
                                               NULL,
-                                              on_folder_view_item_sel_change,
+                                              (void*)on_folder_view_item_sel_change,
                                               NULL);
             on_folder_view_item_sel_change(EXO_ICON_VIEW(file_browser->folder_view), file_browser);
             break;
@@ -2689,7 +2694,7 @@ void ptk_file_browser_select_pattern(GtkWidget* item, PtkFileBrowser* file_brows
                                               0,
                                               0,
                                               NULL,
-                                              on_folder_view_item_sel_change,
+                                              (void*)on_folder_view_item_sel_change,
                                               NULL);
             on_folder_view_item_sel_change((ExoIconView*)tree_sel, file_browser);
             break;
@@ -2728,7 +2733,7 @@ void ptk_file_browser_select_file_list(PtkFileBrowser* file_browser, char** file
                                             0,
                                             0,
                                             NULL,
-                                            on_folder_view_item_sel_change,
+                                            (void*)on_folder_view_item_sel_change,
                                             NULL);
             break;
         case PTK_FB_LIST_VIEW:
@@ -2738,7 +2743,7 @@ void ptk_file_browser_select_file_list(PtkFileBrowser* file_browser, char** file
                                             0,
                                             0,
                                             NULL,
-                                            on_folder_view_item_sel_change,
+                                            (void*)on_folder_view_item_sel_change,
                                             NULL);
             model = gtk_tree_view_get_model(GTK_TREE_VIEW(file_browser->folder_view));
             break;
@@ -2852,7 +2857,7 @@ void ptk_file_browser_select_file_list(PtkFileBrowser* file_browser, char** file
                                               0,
                                               0,
                                               NULL,
-                                              on_folder_view_item_sel_change,
+                                              (void*)on_folder_view_item_sel_change,
                                               NULL);
             on_folder_view_item_sel_change(EXO_ICON_VIEW(file_browser->folder_view), file_browser);
             break;
@@ -2862,7 +2867,7 @@ void ptk_file_browser_select_file_list(PtkFileBrowser* file_browser, char** file
                                               0,
                                               0,
                                               NULL,
-                                              on_folder_view_item_sel_change,
+                                              (void*)on_folder_view_item_sel_change,
                                               NULL);
             on_folder_view_item_sel_change((ExoIconView*)tree_sel, file_browser);
             break;
@@ -2918,7 +2923,7 @@ void ptk_file_browser_seek_path(PtkFileBrowser* file_browser, const char* seek_d
                                             0,
                                             0,
                                             NULL,
-                                            on_folder_view_item_sel_change,
+                                            (void*)on_folder_view_item_sel_change,
                                             NULL);
             break;
         case PTK_FB_LIST_VIEW:
@@ -2928,7 +2933,7 @@ void ptk_file_browser_seek_path(PtkFileBrowser* file_browser, const char* seek_d
                                             0,
                                             0,
                                             NULL,
-                                            on_folder_view_item_sel_change,
+                                            (void*)on_folder_view_item_sel_change,
                                             NULL);
             model = gtk_tree_view_get_model(GTK_TREE_VIEW(file_browser->folder_view));
             break;
@@ -2984,8 +2989,8 @@ void ptk_file_browser_seek_path(PtkFileBrowser* file_browser, const char* seek_d
         goto _restore_sig;
 
     // do selection and scroll to selected
-    GtkTreePath* path =
-        gtk_tree_model_get_path(GTK_TREE_MODEL(PTK_FILE_LIST(file_browser->file_list)), &it);
+    GtkTreePath* path;
+    path = gtk_tree_model_get_path(GTK_TREE_MODEL(PTK_FILE_LIST(file_browser->file_list)), &it);
     if (!path)
         goto _restore_sig;
 
@@ -3033,7 +3038,7 @@ _restore_sig:
                                               0,
                                               0,
                                               NULL,
-                                              on_folder_view_item_sel_change,
+                                              (void*)on_folder_view_item_sel_change,
                                               NULL);
             on_folder_view_item_sel_change(EXO_ICON_VIEW(file_browser->folder_view), file_browser);
             break;
@@ -3043,7 +3048,7 @@ _restore_sig:
                                               0,
                                               0,
                                               NULL,
-                                              on_folder_view_item_sel_change,
+                                              (void*)on_folder_view_item_sel_change,
                                               NULL);
             on_folder_view_item_sel_change((ExoIconView*)tree_sel, file_browser);
             break;
@@ -3690,10 +3695,11 @@ static GtkWidget* create_folder_view(PtkFileBrowser* file_browser, PtkFBViewMode
             // search
             exo_icon_view_set_enable_search((ExoIconView*)folder_view, TRUE);
             exo_icon_view_set_search_column((ExoIconView*)folder_view, COL_FILE_NAME);
-            exo_icon_view_set_search_equal_func((ExoIconView*)folder_view,
-                                                folder_view_search_equal,
-                                                NULL,
-                                                NULL);
+            exo_icon_view_set_search_equal_func(
+                (ExoIconView*)folder_view,
+                (ExoIconViewSearchEqualFunc)folder_view_search_equal,
+                NULL,
+                NULL);
 
             exo_icon_view_set_single_click((ExoIconView*)folder_view, file_browser->single_click);
             exo_icon_view_set_single_click_timeout(
@@ -3759,15 +3765,15 @@ static GtkWidget* create_folder_view(PtkFileBrowser* file_browser, PtkFBViewMode
 
             exo_icon_view_enable_model_drag_source(
                 EXO_ICON_VIEW(folder_view),
-                (GDK_CONTROL_MASK | GDK_BUTTON1_MASK | GDK_BUTTON3_MASK),
+                GdkModifierType(GDK_CONTROL_MASK | GDK_BUTTON1_MASK | GDK_BUTTON3_MASK),
                 drag_targets,
                 G_N_ELEMENTS(drag_targets),
-                GDK_ACTION_ALL);
+                (GdkDragAction)GDK_ACTION_ALL);
 
             exo_icon_view_enable_model_drag_dest(EXO_ICON_VIEW(folder_view),
                                                  drag_targets,
                                                  G_N_ELEMENTS(drag_targets),
-                                                 GDK_ACTION_ALL);
+                                                 (GdkDragAction)GDK_ACTION_ALL);
 
             g_signal_connect((void*)folder_view,
                              "item-activated",
@@ -3794,10 +3800,11 @@ static GtkWidget* create_folder_view(PtkFileBrowser* file_browser, PtkFBViewMode
             // Search
             gtk_tree_view_set_enable_search((GtkTreeView*)folder_view, TRUE);
             gtk_tree_view_set_search_column((GtkTreeView*)folder_view, COL_FILE_NAME);
-            gtk_tree_view_set_search_equal_func((GtkTreeView*)folder_view,
-                                                folder_view_search_equal,
-                                                NULL,
-                                                NULL);
+            gtk_tree_view_set_search_equal_func(
+                (GtkTreeView*)folder_view,
+                (GtkTreeViewSearchEqualFunc)folder_view_search_equal,
+                NULL,
+                NULL);
 
             // gtk_tree_view_set_single_click((GtkTreeView*)folder_view,
             // file_browser->single_click); gtk_tree_view_set_single_click_timeout(
@@ -3808,15 +3815,15 @@ static GtkWidget* create_folder_view(PtkFileBrowser* file_browser, PtkFBViewMode
 
             gtk_tree_view_enable_model_drag_source(
                 GTK_TREE_VIEW(folder_view),
-                (GDK_CONTROL_MASK | GDK_BUTTON1_MASK | GDK_BUTTON3_MASK),
+                GdkModifierType(GDK_CONTROL_MASK | GDK_BUTTON1_MASK | GDK_BUTTON3_MASK),
                 drag_targets,
                 G_N_ELEMENTS(drag_targets),
-                GDK_ACTION_ALL);
+                (GdkDragAction)GDK_ACTION_ALL);
 
             gtk_tree_view_enable_model_drag_dest(GTK_TREE_VIEW(folder_view),
                                                  drag_targets,
                                                  G_N_ELEMENTS(drag_targets),
-                                                 GDK_ACTION_ALL);
+                                                 (GdkDragAction)GDK_ACTION_ALL);
 
             g_signal_connect((void*)folder_view,
                              "row_activated",
@@ -4626,7 +4633,7 @@ static bool on_folder_view_drag_motion(GtkWidget* widget, GdkDragContext* drag_c
     gtk_target_list_unref(target_list);
 
     if (target == GDK_NONE)
-        gdk_drag_status(drag_context, 0, time);
+        gdk_drag_status(drag_context, (GdkDragAction)0, time);
     else
     {
         GdkDragAction suggested_action;
@@ -4708,10 +4715,14 @@ static void on_folder_view_drag_end(GtkWidget* widget, GdkDragContext* drag_cont
     {
         case PTK_FB_ICON_VIEW:
         case PTK_FB_COMPACT_VIEW:
-            exo_icon_view_set_drag_dest_item(EXO_ICON_VIEW(widget), NULL, 0);
+            exo_icon_view_set_drag_dest_item(EXO_ICON_VIEW(widget),
+                                             NULL,
+                                             (ExoIconViewDropPosition)0);
             break;
         case PTK_FB_LIST_VIEW:
-            gtk_tree_view_set_drag_dest_row(GTK_TREE_VIEW(widget), NULL, 0);
+            gtk_tree_view_set_drag_dest_row(GTK_TREE_VIEW(widget),
+                                            NULL,
+                                            (GtkTreeViewDropPosition)0);
             break;
         default:
             break;
@@ -4914,7 +4925,7 @@ void ptk_file_browser_copycmd(PtkFileBrowser* file_browser, GList* sel_files, ch
 
         // task
         PtkFileTask* task =
-            ptk_file_task_new(file_action,
+            ptk_file_task_new((VFSFileTaskType)file_action,
                               file_list,
                               dest_dir,
                               GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(file_browser))),

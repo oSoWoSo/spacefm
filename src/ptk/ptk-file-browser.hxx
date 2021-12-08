@@ -7,7 +7,6 @@
 #pragma once
 
 #include <gtk/gtk.h>
-#include <sys/types.h>
 
 #include "../vfs/vfs-dir.hxx"
 

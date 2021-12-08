@@ -14,7 +14,7 @@
 #include "ptk-utils.hxx"
 #include "ptk-file-task.hxx"
 #include "ptk-file-properties.hxx"
-#include "ptk-file-browser.h"
+#include "ptk-file-browser.hxx"
 #include "ptk-app-chooser.hxx"
 #include "ptk-clipboard.hxx"
 #include "ptk-file-archiver.hxx"

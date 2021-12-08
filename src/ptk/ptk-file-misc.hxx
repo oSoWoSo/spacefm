@@ -13,7 +13,7 @@
 #pragma once
 
 #include <gtk/gtk.h>
-#include "ptk-file-browser.h"
+#include "ptk-file-browser.hxx"
 
 #include "../vfs/vfs-file-info.hxx"
 

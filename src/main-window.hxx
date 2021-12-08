@@ -7,7 +7,7 @@
 #pragma once
 
 #include <gtk/gtk.h>
-#include "ptk/ptk-file-browser.h"
+#include "ptk/ptk-file-browser.hxx"
 #include "ptk/ptk-file-task.hxx"
 
 G_BEGIN_DECLS
