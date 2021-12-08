@@ -1,5 +1,5 @@
 /*
- * SpaceFM ptk-file-archiver.h
+ * SpaceFM ptk-file-archiver.hxx
  *
  * Copyright (C) 2013-2014 OmegaPhil <OmegaPhil@startmail.com>
  * Copyright (C) 2014 IgnorantGuru <ignorantguru@gmx.com>
@@ -11,12 +11,8 @@
 
 #pragma once
 
-#include <stdbool.h>
-
 #include <gtk/gtk.h>
 #include <glib.h>
-
-#include "../vfs/vfs-mime-type.hxx"
 
 #include "ptk-file-browser.h"
 

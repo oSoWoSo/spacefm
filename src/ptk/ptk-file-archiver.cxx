@@ -10,11 +10,7 @@
  *
  */
 
-#include <stdbool.h>
-
-#include <string.h>
-
-#include "ptk-file-archiver.h"
+#include "ptk-file-archiver.hxx"
 #include "ptk-file-task.h"
 #include "ptk-handler.h"
 
@@ -117,7 +113,7 @@ static void on_format_changed(GtkComboBox* combo, void* user_data)
     g_free(path);
 
     // Fetching the combo model
-    GtkListStore* list = g_object_get_data(G_OBJECT(dlg), "combo-model");
+    GtkListStore* list = (GtkListStore*)g_object_get_data(G_OBJECT(dlg), "combo-model");
 
     // Attempting to detect and remove extension from any current archive
     // handler - otherwise cycling through the handlers just appends
@@ -354,7 +350,7 @@ void ptk_file_archiver_create(PtkFileBrowser* file_browser, GList* files, const 
     /* Adding the help button but preventing it from taking the focus on
      * click */
     gtk_widget_set_focus_on_click(
-        GTK_BUTTON(gtk_dialog_add_button(GTK_DIALOG(dlg), "Help", GTK_RESPONSE_HELP)),
+        GTK_WIDGET(gtk_dialog_add_button(GTK_DIALOG(dlg), "Help", GTK_RESPONSE_HELP)),
         FALSE);
 
     GtkFileFilter* filter = gtk_file_filter_new();
@@ -627,7 +623,8 @@ void ptk_file_archiver_create(PtkFileBrowser* file_browser, GList* files, const 
                 run_in_terminal = handler_xset->in_terminal == XSET_B_TRUE;
 
                 // Get command from text view
-                GtkTextBuffer* buf = gtk_text_view_get_buffer(view);
+                GtkTextBuffer* buf;
+                buf = gtk_text_view_get_buffer(view);
                 GtkTextIter iter;
                 GtkTextIter siter;
                 gtk_text_buffer_get_start_iter(buf, &siter);
@@ -649,12 +646,14 @@ void ptk_file_archiver_create(PtkFileBrowser* file_browser, GList* files, const 
                     continue;
                 }
                 // Getting prior command for comparison
-                char* compress_cmd = NULL;
-                char* err_msg = ptk_handler_load_script(HANDLER_MODE_ARC,
-                                                        HANDLER_COMPRESS,
-                                                        handler_xset,
-                                                        NULL,
-                                                        &compress_cmd);
+                char* err_msg;
+                char* compress_cmd;
+                compress_cmd = NULL;
+                err_msg = ptk_handler_load_script(HANDLER_MODE_ARC,
+                                                  HANDLER_COMPRESS,
+                                                  handler_xset,
+                                                  NULL,
+                                                  &compress_cmd);
                 if (err_msg)
                 {
                     g_warning("%s", err_msg);
@@ -1091,7 +1090,7 @@ void ptk_file_archiver_extract(PtkFileBrowser* file_browser, GList* files, const
          * click */
 
         gtk_widget_set_focus_on_click(
-            GTK_BUTTON(gtk_dialog_add_button(GTK_DIALOG(dlg), "Help", GTK_RESPONSE_HELP)),
+            GTK_WIDGET(gtk_dialog_add_button(GTK_DIALOG(dlg), "Help", GTK_RESPONSE_HELP)),
             FALSE);
 
         GtkWidget* hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
@@ -1334,11 +1333,12 @@ void ptk_file_archiver_extract(PtkFileBrowser* file_browser, GList* files, const
 
             /* Get extraction command - Doing this here as parent
              * directory creation needs access to the command. */
-            char* err_msg = ptk_handler_load_script(HANDLER_MODE_ARC,
-                                                    HANDLER_EXTRACT,
-                                                    handler_xset,
-                                                    NULL,
-                                                    &cmd);
+            char* err_msg;
+            err_msg = ptk_handler_load_script(HANDLER_MODE_ARC,
+                                              HANDLER_EXTRACT,
+                                              handler_xset,
+                                              NULL,
+                                              &cmd);
             if (err_msg)
             {
                 g_warning(err_msg, NULL);
@@ -1349,7 +1349,8 @@ void ptk_file_archiver_extract(PtkFileBrowser* file_browser, GList* files, const
             /* Dealing with creation of parent directory if needed -
              * never create a parent directory if '%G' is used - this is
              * an override substitution for the sake of gzip */
-            char* parent_path = NULL;
+            char* parent_path;
+            parent_path = NULL;
             if (create_parent && !g_strstr_len(cmd, -1, "%G"))
             {
                 /* Determining full path of parent directory to make

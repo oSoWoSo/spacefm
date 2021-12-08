@@ -147,7 +147,7 @@ sources = [
   'src/ptk/ptk-clipboard.cxx',
   'src/ptk/ptk-dir-tree.cxx',
   'src/ptk/ptk-dir-tree-view.cxx',
-  'src/ptk/ptk-file-archiver.c',
+  'src/ptk/ptk-file-archiver.cxx',
   'src/ptk/ptk-file-browser.c',
   'src/ptk/ptk-file-list.c',
   'src/ptk/ptk-file-menu.c',
