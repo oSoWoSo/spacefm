@@ -16,7 +16,7 @@
 
 #include "vfs-file-monitor.hxx"
 #include "vfs-file-info.hxx"
-#include "vfs-async-task.h"
+#include "vfs-async-task.hxx"
 
 G_BEGIN_DECLS
 

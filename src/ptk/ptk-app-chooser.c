@@ -18,7 +18,7 @@
 
 #include "../vfs/vfs-app-desktop.h"
 
-#include "../vfs/vfs-async-task.h"
+#include "../vfs/vfs-async-task.hxx"
 
 #include "settings.hxx"
 #include "ptk-handler.h"

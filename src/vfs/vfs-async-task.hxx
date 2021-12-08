@@ -1,5 +1,5 @@
 /*
- *      vfs-async-task.h
+ *      vfs-async-task.hxx
  *
  *      Copyright 2008 PCMan <pcman.tw@gmail.com>
  *
@@ -20,8 +20,6 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
 
 #include <glib.h>
 #include <glib-object.h>

@@ -19,9 +19,7 @@
  *      MA 02110-1301, USA.
  */
 
-#include <stdbool.h>
-
-#include "vfs-async-task.h"
+#include "vfs-async-task.hxx"
 
 static void vfs_async_task_class_init(VFSAsyncTaskClass* klass);
 static void vfs_async_task_init(VFSAsyncTask* task);
@@ -61,7 +59,7 @@ GType vfs_async_task_get_type(void)
             NULL /* value_table */
         };
 
-        self_type = g_type_register_static(G_TYPE_OBJECT, "VFSAsyncTask", &self_info, 0);
+        self_type = g_type_register_static(G_TYPE_OBJECT, "VFSAsyncTask", &self_info, (GTypeFlags)0);
     }
 
     return self_type;
@@ -90,7 +88,7 @@ static void vfs_async_task_class_init(VFSAsyncTaskClass* klass)
 
 static void vfs_async_task_init(VFSAsyncTask* task)
 {
-    task->lock = g_malloc(sizeof(GMutex));
+    task->lock = (GMutex*)g_malloc(sizeof(GMutex));
     g_mutex_init(task->lock);
 }
 
@@ -147,7 +145,7 @@ static void* vfs_async_task_thread(void* _task)
     void* ret = task->func(task, task->user_data);
 
     vfs_async_task_lock(task);
-    task->idle_id = g_idle_add(on_idle, task); // runs in main loop thread
+    task->idle_id = g_idle_add((GSourceFunc)on_idle, task); // runs in main loop thread
     task->ret_val = ret;
     task->finished = TRUE;
     vfs_async_task_unlock(task);
