@@ -19,7 +19,7 @@
 
 #include <string.h>
 
-#include "ptk-dir-tree.h"
+#include "ptk-dir-tree.hxx"
 #include "ptk-file-menu.h"
 #include "ptk-file-task.h"
 
