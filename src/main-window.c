@@ -5,35 +5,15 @@
  */
 
 #include <stdbool.h>
-#include <stdint.h>
-
-#include <libintl.h>
 
 #include "spacefm.hxx"
 
-#include <gtk/gtk.h>
-#include <glib.h>
-#include <glib/gstdio.h>
-#include <glib-object.h>
-#include <gdk/gdk.h>
-#include <gdk/gdkkeysyms.h>
 #include <gdk/gdkx.h>
 #include <X11/Xatom.h>
 
-#include <string.h>
 #include <malloc.h>
 
-#include <linux/limits.h>
-
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdlib.h>
-
-#include <exo/exo.h>
-
 #include "ptk/ptk-location-view.h"
-
-#include "ptk/ptk-file-browser.h"
 
 #include "main-window.h"
 #include "ptk/ptk-utils.h"
@@ -52,7 +32,6 @@
 #include <sys/statvfs.h>
 
 #include "vfs/vfs-utils.h"
-#include "vfs/vfs-file-task.h"
 #include "ptk/ptk-clipboard.h"
 #include "ptk/ptk-handler.h"
 
