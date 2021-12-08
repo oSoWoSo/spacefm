@@ -25,7 +25,7 @@
 
 #include "ptk-file-menu.h"
 #include "ptk-path-entry.h"
-#include "main-window.h"
+#include "main-window.hxx"
 
 #include "utils.hxx"
 

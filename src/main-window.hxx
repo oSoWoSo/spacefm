@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <stdbool.h>
-
 #include <gtk/gtk.h>
 #include "ptk/ptk-file-browser.h"
 #include "ptk/ptk-file-task.hxx"

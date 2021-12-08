@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include <utime.h>
 
-#include "main-window.h"
+#include "main-window.hxx"
 #include "vfs-volume.hxx"
 
 #include "utils.hxx"

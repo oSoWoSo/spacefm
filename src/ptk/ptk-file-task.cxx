@@ -10,7 +10,7 @@
 
 #include <sys/wait.h>
 
-#include "main-window.h"
+#include "main-window.hxx"
 #include "utils.hxx"
 
 #include "ptk-file-task.hxx"

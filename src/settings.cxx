@@ -27,7 +27,7 @@
 #include <exo/exo.h>
 
 #include "settings.hxx"
-#include "main-window.h"
+#include "main-window.hxx"
 #include "item-prop.hxx"
 
 #include "autosave.hxx"

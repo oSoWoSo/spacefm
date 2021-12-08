@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #include <linux/kdev_t.h>
 
-#include "main-window.h"
+#include "main-window.hxx"
 
 #include "../ptk/ptk-handler.h"
 #include "../ptk/ptk-location-view.h"

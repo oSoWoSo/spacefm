@@ -14,7 +14,7 @@
 #include <sys/sysmacros.h>
 #include <locale.h>
 
-#include "main-window.h"
+#include "main-window.hxx"
 
 #include "spacefm.hxx"
 

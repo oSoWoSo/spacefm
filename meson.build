@@ -133,7 +133,7 @@ sources = [
   'src/find-files.cxx',
   'src/item-prop.cxx',
   'src/main.cxx',
-  'src/main-window.c',
+  'src/main-window.cxx',
   'src/pref-dialog.cxx',
   'src/settings.cxx',
   'src/spacefm.cxx',

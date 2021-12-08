@@ -34,7 +34,7 @@
 
 #include "vfs/vfs-volume.hxx"
 
-#include "main-window.h"
+#include "main-window.hxx"
 
 #include "ptk/ptk-file-misc.h"
 #include "ptk/ptk-utils.hxx"

@@ -29,7 +29,7 @@
 #include "ptk-handler.h"
 #include "ptk-file-task.hxx"
 #include "settings.hxx"
-#include "main-window.h"
+#include "main-window.hxx"
 
 #include "../vfs/vfs-utils.hxx"
 

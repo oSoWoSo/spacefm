@@ -15,7 +15,7 @@
 
 #include <string.h>
 #include "settings.hxx"
-#include "main-window.h"
+#include "main-window.hxx"
 
 #include "utils.hxx"
 #include "ptk-handler.h"

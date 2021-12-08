@@ -31,7 +31,7 @@
 #include "ptk-app-chooser.hxx"
 #include "settings.hxx"
 #include "item-prop.hxx"
-#include "main-window.h"
+#include "main-window.hxx"
 #include "ptk-location-view.h"
 #include "ptk-file-list.hxx"
 

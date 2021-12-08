@@ -14,7 +14,7 @@
 #include <gtk/gtk.h>
 
 #include "pref-dialog.hxx"
-#include "main-window.h"
+#include "main-window.hxx"
 
 #include "extern.hxx"
 

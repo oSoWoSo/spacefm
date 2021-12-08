@@ -4,8 +4,6 @@
  *
  */
 
-#include <stdbool.h>
-
 #include "spacefm.hxx"
 
 #include <gdk/gdkx.h>
@@ -15,7 +13,7 @@
 
 #include "ptk/ptk-location-view.h"
 
-#include "main-window.h"
+#include "main-window.hxx"
 #include "ptk/ptk-utils.hxx"
 
 #include "pref-dialog.hxx"
@@ -45,9 +43,9 @@ static void fm_main_window_get_property(GObject* obj, unsigned int prop_id, GVal
                                         GParamSpec* pspec);
 static void fm_main_window_set_property(GObject* obj, unsigned int prop_id, const GValue* value,
                                         GParamSpec* pspec);
-static bool fm_main_window_delete_event(GtkWidget* widget, GdkEvent* event);
+static gboolean fm_main_window_delete_event(GtkWidget* widget, GdkEventAny* event);
 
-static bool fm_main_window_window_state_event(GtkWidget* widget, GdkEventWindowState* event);
+static gboolean fm_main_window_window_state_event(GtkWidget* widget, GdkEventWindowState* event);
 
 static void on_folder_notebook_switch_pape(GtkNotebook* notebook, GtkWidget* page,
                                            unsigned int page_num, void* user_data);
@@ -106,7 +104,7 @@ static GList* all_windows = NULL;
 static unsigned int theme_change_notify = 0;
 
 //  Drag & Drop/Clipboard targets
-static GtkTargetEntry drag_targets[] = {{"text/uri-list", 0, 0}};
+static GtkTargetEntry drag_targets[] = {{(char*)"text/uri-list", 0, 0}};
 
 GType fm_main_window_get_type()
 {
@@ -125,7 +123,7 @@ GType fm_main_window_get_type()
             (GInstanceInitFunc)fm_main_window_init,
             NULL,
         };
-        type = g_type_register_static(GTK_TYPE_WINDOW, "FMMainWindow", &info, 0);
+        type = g_type_register_static(GTK_TYPE_WINDOW, "FMMainWindow", &info, (GTypeFlags)0);
     }
     return type;
 }
@@ -136,14 +134,14 @@ static void fm_main_window_class_init(FMMainWindowClass* klass)
     GtkWidgetClass* widget_class;
 
     object_class = (GObjectClass*)klass;
-    parent_class = g_type_class_peek_parent(klass);
+    parent_class = (GtkWindowClass*)g_type_class_peek_parent(klass);
 
     object_class->set_property = fm_main_window_set_property;
     object_class->get_property = fm_main_window_get_property;
     object_class->finalize = fm_main_window_finalize;
 
     widget_class = GTK_WIDGET_CLASS(klass);
-    widget_class->delete_event = (void*)fm_main_window_delete_event;
+    widget_class->delete_event = fm_main_window_delete_event;
     widget_class->window_state_event = fm_main_window_window_state_event;
 
     /*  this works but desktop_window doesn't
@@ -375,13 +373,13 @@ static GtkWidget* create_plugins_menu(FMMainWindow* main_window)
     if (!file_browser)
         return plug_menu;
 
-    set = xset_set_cb("plug_ifile", on_plugin_install, main_window);
+    set = xset_set_cb("plug_ifile", (GFunc)on_plugin_install, main_window);
     xset_set_ob1(set, "set", set);
-    set = xset_set_cb("plug_iurl", on_plugin_install, main_window);
+    set = xset_set_cb("plug_iurl", (GFunc)on_plugin_install, main_window);
     xset_set_ob1(set, "set", set);
-    set = xset_set_cb("plug_cfile", on_plugin_install, main_window);
+    set = xset_set_cb("plug_cfile", (GFunc)on_plugin_install, main_window);
     xset_set_ob1(set, "set", set);
-    set = xset_set_cb("plug_curl", on_plugin_install, main_window);
+    set = xset_set_cb("plug_curl", (GFunc)on_plugin_install, main_window);
     xset_set_ob1(set, "set", set);
 
     set = xset_get("plug_install");
@@ -510,7 +508,7 @@ static GtkWidget* create_devices_menu(FMMainWindow* main_window)
 
     XSet* set;
 
-    set = xset_set_cb("main_dev", on_devices_show, main_window);
+    set = xset_set_cb("main_dev", (GFunc)on_devices_show, main_window);
     set->b = file_browser->side_dev ? XSET_B_TRUE : XSET_B_UNSET;
     xset_add_menuitem(file_browser, dev_menu, accel_group, set);
 
@@ -631,7 +629,7 @@ static void on_open_root_terminal_activate(GtkMenuItem* menuitem, void* user_dat
 
 static void on_quit_activate(GtkMenuItem* menuitem, void* user_data)
 {
-    fm_main_window_delete_event(user_data, NULL);
+    fm_main_window_delete_event((GtkWidget*)user_data, NULL);
     // fm_main_window_close( GTK_WIDGET( user_data ) );
 }
 
@@ -671,8 +669,8 @@ void main_window_refresh_all()
         int p;
         for (p = 1; p < 5; p++)
         {
-            int notebook = main_window->panel[p - 1];
-            GtkWidget* num_pages = gtk_notebook_get_n_pages(GTK_NOTEBOOK(notebook));
+            ssize_t notebook = (ssize_t)main_window->panel[p - 1];
+            GtkWidget* num_pages = (GtkWidget*)gtk_notebook_get_n_pages(GTK_NOTEBOOK(notebook));
             int i;
             for (i = 0; i < (int64_t)num_pages; i++)
             {
@@ -697,7 +695,7 @@ static void update_window_icon(GtkWindow* window, GtkIconTheme* theme)
     else
         name = g_strdup("spacefm");
 
-    GdkPixbuf* icon = gtk_icon_theme_load_icon(theme, name, 48, 0, &error);
+    GdkPixbuf* icon = gtk_icon_theme_load_icon(theme, name, 48, (GtkIconLookupFlags)0, &error);
     if (icon)
     {
         gtk_window_set_icon(window, icon);
@@ -1271,7 +1269,7 @@ static void show_panels(GtkMenuItem* item, FMMainWindow* main_window)
                                                 0,
                                                 0,
                                                 NULL,
-                                                on_toggle_panelbar,
+                                                (void*)on_toggle_panelbar,
                                                 NULL);
                 gtk_toggle_tool_button_set_active(
                     GTK_TOGGLE_TOOL_BUTTON(main_window->panel_btn[p - 1]),
@@ -1281,7 +1279,7 @@ static void show_panels(GtkMenuItem* item, FMMainWindow* main_window)
                                                   0,
                                                   0,
                                                   NULL,
-                                                  on_toggle_panelbar,
+                                                  (void*)on_toggle_panelbar,
                                                   NULL);
             }
         }
@@ -1309,7 +1307,7 @@ static void show_panels(GtkMenuItem* item, FMMainWindow* main_window)
                                                 0,
                                                 0,
                                                 NULL,
-                                                on_toggle_panelbar,
+                                                (void*)on_toggle_panelbar,
                                                 NULL);
                 gtk_toggle_tool_button_set_active(
                     GTK_TOGGLE_TOOL_BUTTON(main_window->panel_btn[p - 1]),
@@ -1319,7 +1317,7 @@ static void show_panels(GtkMenuItem* item, FMMainWindow* main_window)
                                                   0,
                                                   0,
                                                   NULL,
-                                                  on_toggle_panelbar,
+                                                  (void*)on_toggle_panelbar,
                                                   NULL);
             }
         }
@@ -1435,13 +1433,13 @@ static void rebuild_menus(FMMainWindow* main_window)
 
     // File
     newmenu = gtk_menu_new();
-    xset_set_cb("main_new_window", on_new_window_activate, main_window);
-    xset_set_cb("main_root_window", on_open_current_folder_as_root, main_window);
-    xset_set_cb("main_search", on_find_file_activate, main_window);
-    xset_set_cb("main_terminal", on_open_terminal_activate, main_window);
-    xset_set_cb("main_root_terminal", on_open_root_terminal_activate, main_window);
-    xset_set_cb("main_save_session", on_open_url, main_window);
-    xset_set_cb("main_exit", on_quit_activate, main_window);
+    xset_set_cb("main_new_window", (GFunc)on_new_window_activate, main_window);
+    xset_set_cb("main_root_window", (GFunc)on_open_current_folder_as_root, main_window);
+    xset_set_cb("main_search", (GFunc)on_find_file_activate, main_window);
+    xset_set_cb("main_terminal", (GFunc)on_open_terminal_activate, main_window);
+    xset_set_cb("main_root_terminal", (GFunc)on_open_root_terminal_activate, main_window);
+    xset_set_cb("main_save_session", (GFunc)on_open_url, main_window);
+    xset_set_cb("main_exit", (GFunc)on_quit_activate, main_window);
     menu_elements = g_strdup_printf(
         "main_save_session main_search separator main_terminal main_root_terminal "
         "main_new_window main_root_window separator main_save_tabs separator main_exit");
@@ -1453,11 +1451,11 @@ static void rebuild_menus(FMMainWindow* main_window)
 
     // View
     newmenu = gtk_menu_new();
-    xset_set_cb("main_prefs", on_preference_activate, main_window);
-    xset_set_cb("main_full", on_fullscreen_activate, main_window);
-    xset_set_cb("main_design_mode", main_design_mode, main_window);
-    xset_set_cb("main_icon", on_main_icon, NULL);
-    xset_set_cb("main_title", update_window_title, main_window);
+    xset_set_cb("main_prefs", (GFunc)on_preference_activate, main_window);
+    xset_set_cb("main_full", (GFunc)on_fullscreen_activate, main_window);
+    xset_set_cb("main_design_mode", (GFunc)main_design_mode, main_window);
+    xset_set_cb("main_icon", (GFunc)on_main_icon, NULL);
+    xset_set_cb("main_title", (GFunc)update_window_title, main_window);
 
     int p;
     int vis_count = 0;
@@ -1471,36 +1469,36 @@ static void rebuild_menus(FMMainWindow* main_window)
         xset_set_b_panel(1, "show", TRUE);
         vis_count++;
     }
-    set = xset_set_cb("panel1_show", show_panels_all_windows, main_window);
+    set = xset_set_cb("panel1_show", (GFunc)show_panels_all_windows, main_window);
     set->disable = (main_window->curpanel == 1 && vis_count == 1);
-    set = xset_set_cb("panel2_show", show_panels_all_windows, main_window);
+    set = xset_set_cb("panel2_show", (GFunc)show_panels_all_windows, main_window);
     set->disable = (main_window->curpanel == 2 && vis_count == 1);
-    set = xset_set_cb("panel3_show", show_panels_all_windows, main_window);
+    set = xset_set_cb("panel3_show", (GFunc)show_panels_all_windows, main_window);
     set->disable = (main_window->curpanel == 3 && vis_count == 1);
-    set = xset_set_cb("panel4_show", show_panels_all_windows, main_window);
+    set = xset_set_cb("panel4_show", (GFunc)show_panels_all_windows, main_window);
     set->disable = (main_window->curpanel == 4 && vis_count == 1);
 
-    xset_set_cb("main_pbar", show_panels_all_windows, main_window);
+    xset_set_cb("main_pbar", (GFunc)show_panels_all_windows, main_window);
 
-    set = xset_set_cb("panel_prev", focus_panel, main_window);
+    set = xset_set_cb("panel_prev", (GFunc)focus_panel, main_window);
     xset_set_ob1_int(set, "panel_num", -1);
     set->disable = (vis_count == 1);
-    set = xset_set_cb("panel_next", focus_panel, main_window);
+    set = xset_set_cb("panel_next", (GFunc)focus_panel, main_window);
     xset_set_ob1_int(set, "panel_num", -2);
     set->disable = (vis_count == 1);
-    set = xset_set_cb("panel_hide", focus_panel, main_window);
+    set = xset_set_cb("panel_hide", (GFunc)focus_panel, main_window);
     xset_set_ob1_int(set, "panel_num", -3);
     set->disable = (vis_count == 1);
-    set = xset_set_cb("panel_1", focus_panel, main_window);
+    set = xset_set_cb("panel_1", (GFunc)focus_panel, main_window);
     xset_set_ob1_int(set, "panel_num", 1);
     set->disable = (main_window->curpanel == 1);
-    set = xset_set_cb("panel_2", focus_panel, main_window);
+    set = xset_set_cb("panel_2", (GFunc)focus_panel, main_window);
     xset_set_ob1_int(set, "panel_num", 2);
     set->disable = (main_window->curpanel == 2);
-    set = xset_set_cb("panel_3", focus_panel, main_window);
+    set = xset_set_cb("panel_3", (GFunc)focus_panel, main_window);
     xset_set_ob1_int(set, "panel_num", 3);
     set->disable = (main_window->curpanel == 3);
-    set = xset_set_cb("panel_4", focus_panel, main_window);
+    set = xset_set_cb("panel_4", (GFunc)focus_panel, main_window);
     xset_set_ob1_int(set, "panel_num", 4);
     set->disable = (main_window->curpanel == 4);
 
@@ -1538,10 +1536,10 @@ static void rebuild_menus(FMMainWindow* main_window)
 
     // Bookmarks
     newmenu = gtk_menu_new();
-    set = xset_set_cb("book_show", on_bookmarks_show, main_window);
+    set = xset_set_cb("book_show", (GFunc)on_bookmarks_show, main_window);
     set->b = file_browser->side_book ? XSET_B_TRUE : XSET_B_UNSET;
     xset_add_menuitem(file_browser, newmenu, accel_group, set);
-    set = xset_set_cb("book_add", ptk_bookmark_view_add_bookmark, file_browser);
+    set = xset_set_cb("book_add", (GFunc)ptk_bookmark_view_add_bookmark, file_browser);
     set->disable = FALSE;
     xset_add_menuitem(file_browser, newmenu, accel_group, set);
     gtk_menu_shell_append(GTK_MENU_SHELL(newmenu), gtk_separator_menu_item_new());
@@ -1580,12 +1578,12 @@ static void rebuild_menus(FMMainWindow* main_window)
 
     // Help
     newmenu = gtk_menu_new();
-    xset_set_cb("main_faq", on_main_faq, main_window);
-    xset_set_cb("main_about", on_about_activate, main_window);
-    xset_set_cb("main_help", on_main_help_activate, main_window);
-    xset_set_cb("main_homepage", on_homepage_activate, main_window);
-    xset_set_cb("main_news", on_news_activate, main_window);
-    xset_set_cb("main_getplug", on_getplug_activate, main_window);
+    xset_set_cb("main_faq", (GFunc)on_main_faq, main_window);
+    xset_set_cb("main_about", (GFunc)on_about_activate, main_window);
+    xset_set_cb("main_help", (GFunc)on_main_help_activate, main_window);
+    xset_set_cb("main_homepage", (GFunc)on_homepage_activate, main_window);
+    xset_set_cb("main_news", (GFunc)on_news_activate, main_window);
+    xset_set_cb("main_getplug", (GFunc)on_getplug_activate, main_window);
     menu_elements = g_strdup_printf("main_faq main_help separator main_homepage main_news "
                                     "main_getplug separator main_help_opt separator main_about");
     xset_add_menu(file_browser, newmenu, accel_group, menu_elements);
@@ -1995,7 +1993,7 @@ void fm_main_window_store_positions(FMMainWindow* main_window)
     }
 }
 
-static bool fm_main_window_delete_event(GtkWidget* widget, GdkEvent* event)
+static gboolean fm_main_window_delete_event(GtkWidget* widget, GdkEventAny* event)
 {
     // printf("fm_main_window_delete_event\n");
 
@@ -2046,7 +2044,7 @@ static bool fm_main_window_delete_event(GtkWidget* widget, GdkEvent* event)
     return TRUE;
 }
 
-static bool fm_main_window_window_state_event(GtkWidget* widget, GdkEventWindowState* event)
+static gboolean fm_main_window_window_state_event(GtkWidget* widget, GdkEventWindowState* event)
 {
     FMMainWindow* main_window = (FMMainWindow*)widget;
 
@@ -2269,7 +2267,7 @@ void on_close_notebook_page(GtkButton* btn, PtkFileBrowser* file_browser)
                                     0,
                                     0,
                                     NULL,
-                                    on_folder_notebook_switch_pape,
+                                    (void*)on_folder_notebook_switch_pape,
                                     NULL);
 
     // remove page can also be used to destroy - same result
@@ -2299,7 +2297,8 @@ void on_close_notebook_page(GtkButton* btn, PtkFileBrowser* file_browser)
     }
 
     // update view of new current tab
-    int cur_tabx = gtk_notebook_get_current_page(GTK_NOTEBOOK(main_window->notebook));
+    int cur_tabx;
+    cur_tabx = gtk_notebook_get_current_page(GTK_NOTEBOOK(main_window->notebook));
     if (cur_tabx != -1)
     {
         a_browser = PTK_FILE_BROWSER(gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), cur_tabx));
@@ -2329,7 +2328,7 @@ _done_close:
                                       0,
                                       0,
                                       NULL,
-                                      on_folder_notebook_switch_pape,
+                                      (void*)on_folder_notebook_switch_pape,
                                       NULL);
 
     update_window_title(NULL, main_window);
@@ -2368,11 +2367,11 @@ static bool notebook_clicked(GtkWidget* widget, GdkEventButton* event,
             XSetContext* context = xset_context_new();
             main_context_fill(file_browser, context);
 
-            XSet* set = xset_set_cb("tab_close", on_close_notebook_page, file_browser);
+            XSet* set = xset_set_cb("tab_close", (GFunc)on_close_notebook_page, file_browser);
             xset_add_menuitem(file_browser, popup, accel_group, set);
-            set = xset_set_cb("tab_new", ptk_file_browser_new_tab, file_browser);
+            set = xset_set_cb("tab_new", (GFunc)ptk_file_browser_new_tab, file_browser);
             xset_add_menuitem(file_browser, popup, accel_group, set);
-            set = xset_set_cb("tab_new_here", ptk_file_browser_new_tab_here, file_browser);
+            set = xset_set_cb("tab_new_here", (GFunc)ptk_file_browser_new_tab_here, file_browser);
             xset_add_menuitem(file_browser, popup, accel_group, set);
             gtk_widget_show_all(GTK_WIDGET(popup));
             g_signal_connect(popup, "selection-done", G_CALLBACK(gtk_widget_destroy), NULL);
@@ -2493,7 +2492,7 @@ GtkWidget* fm_main_window_create_tab_label(FMMainWindow* main_window, PtkFileBro
     if (!app_settings.hide_close_tab_buttons)
     {
         close_btn = gtk_button_new();
-        gtk_widget_set_focus_on_click(GTK_BUTTON(close_btn), FALSE);
+        gtk_widget_set_focus_on_click(GTK_WIDGET(close_btn), FALSE);
         gtk_button_set_relief(GTK_BUTTON(close_btn), GTK_RELIEF_NONE);
         close_icon = gtk_image_new_from_icon_name("window-close", GTK_ICON_SIZE_MENU);
 
@@ -2508,11 +2507,12 @@ GtkWidget* fm_main_window_create_tab_label(FMMainWindow* main_window, PtkFileBro
     gtk_container_add(GTK_CONTAINER(evt_box), tab_label);
 
     gtk_widget_set_events(GTK_WIDGET(evt_box), GDK_ALL_EVENTS_MASK);
-    gtk_drag_dest_set(GTK_WIDGET(evt_box),
-                      GTK_DEST_DEFAULT_ALL,
-                      drag_targets,
-                      sizeof(drag_targets) / sizeof(GtkTargetEntry),
-                      GDK_ACTION_DEFAULT | GDK_ACTION_COPY | GDK_ACTION_MOVE | GDK_ACTION_LINK);
+    gtk_drag_dest_set(
+        GTK_WIDGET(evt_box),
+        GTK_DEST_DEFAULT_ALL,
+        drag_targets,
+        sizeof(drag_targets) / sizeof(GtkTargetEntry),
+        GdkDragAction(GDK_ACTION_DEFAULT | GDK_ACTION_COPY | GDK_ACTION_MOVE | GDK_ACTION_LINK));
     g_signal_connect((void*)evt_box, "drag-motion", G_CALLBACK(on_tab_drag_motion), file_browser);
 
     // MOD  middle-click to close tab
@@ -2591,9 +2591,10 @@ void fm_main_window_add_new_tab(FMMainWindow* main_window, const char* folder_pa
 
     ptk_file_browser_set_sort_order(
         file_browser,
-        xset_get_int_panel(file_browser->mypanel, "list_detailed", "x"));
-    ptk_file_browser_set_sort_type(file_browser,
-                                   xset_get_int_panel(file_browser->mypanel, "list_detailed", "y"));
+        (PtkFBSortOrder)xset_get_int_panel(file_browser->mypanel, "list_detailed", "x"));
+    ptk_file_browser_set_sort_type(
+        file_browser,
+        (GtkSortType)xset_get_int_panel(file_browser->mypanel, "list_detailed", "y"));
 
     gtk_widget_show(GTK_WIDGET(file_browser));
 
@@ -2757,7 +2758,7 @@ static void on_about_activate(GtkMenuItem* menuitem, void* user_data)
             name = g_strdup("spacefm");
         gtk_about_dialog_set_logo_icon_name(GTK_ABOUT_DIALOG(about_dlg), name);
 
-        g_object_add_weak_pointer(G_OBJECT(about_dlg), (void*)&about_dlg);
+        // g_object_add_weak_pointer(G_OBJECT(about_dlg), (void*)&about_dlg);
         g_signal_connect(about_dlg, "response", G_CALLBACK(gtk_widget_destroy), NULL);
         g_signal_connect(about_dlg, "destroy", G_CALLBACK(pcmanfm_unref), NULL);
         g_signal_connect(about_dlg, "activate-link", G_CALLBACK(open_url), NULL);
@@ -3355,8 +3356,9 @@ static bool on_main_window_keypress(FMMainWindow* main_window, GdkEventKey* even
     if (event->keyval == 0)
         return FALSE;
 
-    unsigned int keymod = (event->state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_MOD1_MASK |
-                                           GDK_SUPER_MASK | GDK_HYPER_MASK | GDK_META_MASK));
+    unsigned int keymod;
+    keymod = (event->state & (GDK_SHIFT_MASK | GDK_CONTROL_MASK | GDK_MOD1_MASK | GDK_SUPER_MASK |
+                              GDK_HYPER_MASK | GDK_META_MASK));
 
     if ((event->keyval == GDK_KEY_Home && (keymod == 0 || keymod == GDK_SHIFT_MASK)) ||
         (event->keyval == GDK_KEY_End && (keymod == 0 || keymod == GDK_SHIFT_MASK)) ||
@@ -3375,7 +3377,8 @@ static bool on_main_window_keypress(FMMainWindow* main_window, GdkEventKey* even
     }
 
 #ifdef HAVE_NONLATIN
-    unsigned int nonlatin_key = 0;
+    unsigned int nonlatin_key;
+    nonlatin_key = 0;
     // need to transpose nonlatin keyboard layout ?
     if (!((GDK_KEY_0 <= event->keyval && event->keyval <= GDK_KEY_9) ||
           (GDK_KEY_A <= event->keyval && event->keyval <= GDK_KEY_Z) ||
@@ -4937,36 +4940,36 @@ static void main_task_prepare_menu(FMMainWindow* main_window, GtkWidget* menu,
     XSet* set_radio;
 
     GtkWidget* parent = main_window->task_view;
-    set = xset_set_cb("task_show_manager", on_task_popup_show, main_window);
+    set = xset_set_cb("task_show_manager", (GFunc)on_task_popup_show, main_window);
     xset_set_ob1(set, "name", set->name);
     xset_set_ob2(set, NULL, NULL);
     set_radio = set;
-    set = xset_set_cb("task_hide_manager", on_task_popup_show, main_window);
+    set = xset_set_cb("task_hide_manager", (GFunc)on_task_popup_show, main_window);
     xset_set_ob1(set, "name", set->name);
     xset_set_ob2(set, NULL, set_radio);
 
-    xset_set_cb("task_col_count", on_task_column_selected, parent);
-    xset_set_cb("task_col_path", on_task_column_selected, parent);
-    xset_set_cb("task_col_file", on_task_column_selected, parent);
-    xset_set_cb("task_col_to", on_task_column_selected, parent);
-    xset_set_cb("task_col_progress", on_task_column_selected, parent);
-    xset_set_cb("task_col_total", on_task_column_selected, parent);
-    xset_set_cb("task_col_started", on_task_column_selected, parent);
-    xset_set_cb("task_col_elapsed", on_task_column_selected, parent);
-    xset_set_cb("task_col_curspeed", on_task_column_selected, parent);
-    xset_set_cb("task_col_curest", on_task_column_selected, parent);
-    xset_set_cb("task_col_avgspeed", on_task_column_selected, parent);
-    xset_set_cb("task_col_avgest", on_task_column_selected, parent);
-    xset_set_cb("task_col_reorder", on_reorder, parent);
+    xset_set_cb("task_col_count", (GFunc)on_task_column_selected, parent);
+    xset_set_cb("task_col_path", (GFunc)on_task_column_selected, parent);
+    xset_set_cb("task_col_file", (GFunc)on_task_column_selected, parent);
+    xset_set_cb("task_col_to", (GFunc)on_task_column_selected, parent);
+    xset_set_cb("task_col_progress", (GFunc)on_task_column_selected, parent);
+    xset_set_cb("task_col_total", (GFunc)on_task_column_selected, parent);
+    xset_set_cb("task_col_started", (GFunc)on_task_column_selected, parent);
+    xset_set_cb("task_col_elapsed", (GFunc)on_task_column_selected, parent);
+    xset_set_cb("task_col_curspeed", (GFunc)on_task_column_selected, parent);
+    xset_set_cb("task_col_curest", (GFunc)on_task_column_selected, parent);
+    xset_set_cb("task_col_avgspeed", (GFunc)on_task_column_selected, parent);
+    xset_set_cb("task_col_avgest", (GFunc)on_task_column_selected, parent);
+    xset_set_cb("task_col_reorder", (GFunc)on_reorder, parent);
 
-    set = xset_set_cb("task_err_first", on_task_popup_errset, main_window);
+    set = xset_set_cb("task_err_first", (GFunc)on_task_popup_errset, main_window);
     xset_set_ob1(set, "name", set->name);
     xset_set_ob2(set, NULL, NULL);
     set_radio = set;
-    set = xset_set_cb("task_err_any", on_task_popup_errset, main_window);
+    set = xset_set_cb("task_err_any", (GFunc)on_task_popup_errset, main_window);
     xset_set_ob1(set, "name", set->name);
     xset_set_ob2(set, NULL, set_radio);
-    set = xset_set_cb("task_err_cont", on_task_popup_errset, main_window);
+    set = xset_set_cb("task_err_cont", (GFunc)on_task_popup_errset, main_window);
     xset_set_ob1(set, "name", set->name);
     xset_set_ob2(set, NULL, set_radio);
 }
@@ -5104,51 +5107,56 @@ static bool on_task_button_press_event(GtkWidget* view, GdkEventButton* event,
             }
 
             // build popup
-            PtkFileBrowser* file_browser =
-                PTK_FILE_BROWSER(fm_main_window_get_current_file_browser(main_window));
+            PtkFileBrowser* file_browser;
+            file_browser = PTK_FILE_BROWSER(fm_main_window_get_current_file_browser(main_window));
             if (!file_browser)
                 return FALSE;
-            GtkWidget* popup = gtk_menu_new();
-            GtkAccelGroup* accel_group = gtk_accel_group_new();
-            XSetContext* context = xset_context_new();
+            GtkWidget* popup;
+            GtkAccelGroup* accel_group;
+            XSetContext* context;
+            popup = gtk_menu_new();
+            accel_group = gtk_accel_group_new();
+            context = xset_context_new();
             main_context_fill(file_browser, context);
 
-            set = xset_set_cb("task_stop", on_task_stop, view);
+            set = xset_set_cb("task_stop", (GFunc)on_task_stop, view);
             xset_set_ob1(set, "task", ptask);
             set->disable = !ptask;
 
-            set = xset_set_cb("task_pause", on_task_stop, view);
+            set = xset_set_cb("task_pause", (GFunc)on_task_stop, view);
             xset_set_ob1(set, "task", ptask);
             set->disable = (!ptask || ptask->task->state_pause == VFS_FILE_TASK_PAUSE ||
                             (ptask->task->type == VFS_FILE_TASK_EXEC && !ptask->task->exec_pid));
 
-            set = xset_set_cb("task_que", on_task_stop, view);
+            set = xset_set_cb("task_que", (GFunc)on_task_stop, view);
             xset_set_ob1(set, "task", ptask);
             set->disable = (!ptask || ptask->task->state_pause == VFS_FILE_TASK_QUEUE ||
                             (ptask->task->type == VFS_FILE_TASK_EXEC && !ptask->task->exec_pid));
 
-            set = xset_set_cb("task_resume", on_task_stop, view);
+            set = xset_set_cb("task_resume", (GFunc)on_task_stop, view);
             xset_set_ob1(set, "task", ptask);
             set->disable = (!ptask || ptask->task->state_pause == VFS_FILE_TASK_RUNNING ||
                             (ptask->task->type == VFS_FILE_TASK_EXEC && !ptask->task->exec_pid));
 
-            xset_set_cb("task_stop_all", on_task_stop, view);
-            xset_set_cb("task_pause_all", on_task_stop, view);
-            xset_set_cb("task_que_all", on_task_stop, view);
-            xset_set_cb("task_resume_all", on_task_stop, view);
+            xset_set_cb("task_stop_all", (GFunc)on_task_stop, view);
+            xset_set_cb("task_pause_all", (GFunc)on_task_stop, view);
+            xset_set_cb("task_que_all", (GFunc)on_task_stop, view);
+            xset_set_cb("task_resume_all", (GFunc)on_task_stop, view);
             set = xset_get("task_all");
             set->disable = !is_tasks;
 
-            const char* showout = g_strdup("");
+            const char* showout;
+            showout = g_strdup("");
             if (ptask && ptask->pop_handler)
             {
-                xset_set_cb("task_showout", show_task_dialog, view);
+                xset_set_cb("task_showout", (GFunc)show_task_dialog, view);
                 showout = g_strdup(" task_showout");
             }
 
             main_task_prepare_menu(main_window, popup, accel_group);
 
-            char* menu_elements = g_strdup_printf(
+            char* menu_elements;
+            menu_elements = g_strdup_printf(
                 "task_stop separator task_pause task_que task_resume%s task_all separator "
                 "task_show_manager "
                 "task_hide_manager separator task_columns task_popups task_errors task_queue",
@@ -5395,14 +5403,14 @@ void main_task_view_update_task(PtkFileTask* ptask)
             pixbuf = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(),
                                               iname,
                                               icon_size,
-                                              GTK_ICON_LOOKUP_USE_BUILTIN,
+                                              (GtkIconLookupFlags)GTK_ICON_LOOKUP_USE_BUILTIN,
                                               NULL);
             g_free(iname);
             if (!pixbuf)
                 pixbuf = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(),
                                                   "gtk-execute",
                                                   icon_size,
-                                                  GTK_ICON_LOOKUP_USE_BUILTIN,
+                                                  (GtkIconLookupFlags)GTK_ICON_LOOKUP_USE_BUILTIN,
                                                   NULL);
             ptask->pause_change_view = FALSE;
         }
@@ -6124,7 +6132,7 @@ char main_window_socket_command(char* argv[], char** reply)
                 *reply = g_strdup_printf("spacefm: invalid column name '%s'\n", argv[i + 1]);
                 return 2;
             }
-            ptk_file_browser_set_sort_order(file_browser, j);
+            ptk_file_browser_set_sort_order(file_browser, (PtkFBSortOrder)j);
         }
         else if (g_str_has_prefix(argv[i], "sort_"))
         {
@@ -6147,7 +6155,10 @@ char main_window_socket_command(char* argv[], char** reply)
             }
             else if (!strcmp(argv[i] + 5, "hidden_first"))
             {
-                str = get_bool(argv[i + 1]) ? "sortx_hidfirst" : "sortx_hidlast";
+                if (get_bool(argv[i + 1]))
+                    str = g_strdup("sortx_hidfirst");
+                else
+                    str = g_strdup("sortx_hidlast");
                 xset_set_b(str, TRUE);
             }
             else if (!strcmp(argv[i] + 5, "first"))
@@ -7246,7 +7257,7 @@ char main_window_socket_command(char* argv[], char** reply)
             else
                 return 1; // failsafe
             PtkFileTask* ptask =
-                ptk_file_task_new(j,
+                ptk_file_task_new((VFSFileTaskType)j,
                                   l,
                                   target_dir,
                                   GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(file_browser))),
