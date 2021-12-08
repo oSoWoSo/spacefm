@@ -152,7 +152,7 @@ sources = [
   'src/ptk/ptk-file-list.cxx',
   'src/ptk/ptk-file-menu.c',
   'src/ptk/ptk-file-misc.c',
-  'src/ptk/ptk-file-properties.c',
+  'src/ptk/ptk-file-properties.cxx',
   'src/ptk/ptk-file-task.c',
   'src/ptk/ptk-handler.c',
   'src/ptk/ptk-location-view.c',

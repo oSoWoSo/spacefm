@@ -8,20 +8,12 @@
  *
  */
 
-#include <stdbool.h>
-
-#include <libintl.h>
-
 #include <gtk/gtk.h>
 
-#include "ptk-file-properties.h"
+#include "ptk-file-properties.hxx"
 
-#include "../mime-type/mime-type.hxx"
-
-#include <sys/types.h>
 #include <pwd.h>
 #include <grp.h>
-#include <string.h>
 
 #include "ptk-file-task.h"
 #include "ptk-utils.hxx"
@@ -190,7 +182,7 @@ static void on_chmod_btn_toggled(GtkToggleButton* btn, FilePropertiesDialogData*
                                     0,
                                     0,
                                     NULL,
-                                    on_chmod_btn_toggled,
+                                    (void*)on_chmod_btn_toggled,
                                     NULL);
 
     if (gtk_toggle_button_get_inconsistent(btn))
@@ -208,7 +200,7 @@ static void on_chmod_btn_toggled(GtkToggleButton* btn, FilePropertiesDialogData*
                                       0,
                                       0,
                                       NULL,
-                                      on_chmod_btn_toggled,
+                                      (void*)on_chmod_btn_toggled,
                                       NULL);
 }
 
@@ -489,7 +481,10 @@ GtkWidget* file_properties_dlg_new(GtkWindow* parent, const char* dir_path, GLis
         gtk_combo_box_set_model(GTK_COMBO_BOX(open_with), GTK_TREE_MODEL(model));
         // gtk_combo_box_set_model adds a ref
         g_object_unref(model);
-        gtk_combo_box_set_row_separator_func(GTK_COMBO_BOX(open_with), combo_sep, NULL, NULL);
+        gtk_combo_box_set_row_separator_func(GTK_COMBO_BOX(open_with),
+                                             (GtkTreeViewRowSeparatorFunc)combo_sep,
+                                             NULL,
+                                             NULL);
         gtk_combo_box_set_active(GTK_COMBO_BOX(open_with), 0);
         g_signal_connect(open_with, "changed", G_CALLBACK(on_combo_change), mime);
 
