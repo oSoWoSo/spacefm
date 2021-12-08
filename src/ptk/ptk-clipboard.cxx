@@ -8,20 +8,13 @@
  *
  */
 
-#include <stdbool.h>
-
-#include "ptk-clipboard.h"
-
-#include <string.h>
-
-#include "../vfs/vfs-file-info.hxx"
-#include "../vfs/vfs-file-task.hxx"
-
 #include "ptk-file-task.h"
 #include "ptk-file-misc.h"
 #include "ptk-utils.hxx"
 
 #include "utils.hxx"
+
+#include "ptk-clipboard.hxx"
 
 static GdkDragAction clipboard_action = GDK_ACTION_DEFAULT;
 static GList* clipboard_file_list = NULL;

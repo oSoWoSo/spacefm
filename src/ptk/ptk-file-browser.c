@@ -42,7 +42,7 @@
 
 #include "ptk-file-list.h"
 
-#include "ptk-clipboard.h"
+#include "ptk-clipboard.hxx"
 
 #include "ptk-file-menu.h"
 #include "ptk-path-entry.h"

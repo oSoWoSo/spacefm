@@ -32,7 +32,7 @@
 #include <sys/statvfs.h>
 
 #include "vfs/vfs-utils.hxx"
-#include "ptk/ptk-clipboard.h"
+#include "ptk/ptk-clipboard.hxx"
 #include "ptk/ptk-handler.h"
 
 static void rebuild_menus(FMMainWindow* main_window);

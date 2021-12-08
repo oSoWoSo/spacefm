@@ -30,7 +30,7 @@
 #include "ptk-file-properties.h"
 #include "ptk-file-browser.h"
 #include "ptk-app-chooser.hxx"
-#include "ptk-clipboard.h"
+#include "ptk-clipboard.hxx"
 #include "ptk-file-archiver.h"
 #include "ptk-location-view.h"
 #include <gdk/gdkkeysyms.h>

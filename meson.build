@@ -144,7 +144,7 @@ sources = [
   'src/mime-type/mime-type.cxx',
 
   'src/ptk/ptk-app-chooser.cxx',
-  'src/ptk/ptk-clipboard.c',
+  'src/ptk/ptk-clipboard.cxx',
   'src/ptk/ptk-dir-tree.c',
   'src/ptk/ptk-dir-tree-view.c',
   'src/ptk/ptk-file-archiver.c',
