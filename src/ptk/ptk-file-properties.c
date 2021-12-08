@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include "ptk-file-task.h"
-#include "ptk-utils.h"
+#include "ptk-utils.hxx"
 
 #include "../vfs/vfs-app-desktop.hxx"
 

@@ -37,7 +37,7 @@
 #include "main-window.h"
 
 #include "ptk/ptk-file-misc.h"
-#include "ptk/ptk-utils.h"
+#include "ptk/ptk-utils.hxx"
 
 #include "find-files.hxx"
 

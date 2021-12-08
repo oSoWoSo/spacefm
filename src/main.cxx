@@ -26,7 +26,7 @@
 #include "vfs/vfs-volume.hxx"
 #include "vfs/vfs-thumbnail-loader.hxx"
 
-#include "ptk/ptk-utils.h"
+#include "ptk/ptk-utils.hxx"
 #include "ptk/ptk-app-chooser.h"
 #include "ptk/ptk-location-view.h"
 

@@ -12,10 +12,9 @@
 
 #pragma once
 
-#include <stdint.h>
-
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
+#include <glib.h>
 
 G_BEGIN_DECLS
 

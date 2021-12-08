@@ -32,7 +32,7 @@
 
 #include "settings.hxx"
 
-#include "ptk-utils.h"
+#include "ptk-utils.hxx"
 #include "ptk-file-task.h"
 #include "ptk-file-misc.h"
 

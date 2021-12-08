@@ -16,7 +16,7 @@
 #include "ptk/ptk-location-view.h"
 
 #include "main-window.h"
-#include "ptk/ptk-utils.h"
+#include "ptk/ptk-utils.hxx"
 
 #include "pref-dialog.hxx"
 #include "ptk/ptk-file-menu.h"

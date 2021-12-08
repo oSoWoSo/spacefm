@@ -18,7 +18,7 @@
 
 #include "extern.hxx"
 
-#include "ptk/ptk-utils.h"
+#include "ptk/ptk-utils.hxx"
 #include "ptk/ptk-location-view.h"
 
 typedef struct FMPrefDlg

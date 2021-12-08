@@ -19,7 +19,7 @@
 
 #include "ptk-file-task.h"
 #include "ptk-file-misc.h"
-#include "ptk-utils.h"
+#include "ptk-utils.hxx"
 
 #include "utils.hxx"
 

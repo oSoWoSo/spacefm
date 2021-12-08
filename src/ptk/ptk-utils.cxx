@@ -10,15 +10,10 @@
  *
  */
 
-#include "ptk-utils.h"
-
-#include <glib.h>
-
-#include <gdk/gdk.h>
-#include <gdk/gdkkeysyms.h>
-
 #include "settings.hxx"
 #include "utils.hxx"
+
+#include "ptk-utils.hxx"
 
 void ptk_show_error(GtkWindow* parent, const char* title, const char* message)
 {

@@ -18,7 +18,7 @@
 #include <gdk/gdkkeysyms.h>
 
 #include "ptk-file-task.h"
-#include "ptk-utils.h"
+#include "ptk-utils.hxx"
 
 #include "main-window.h"
 #include "utils.hxx"

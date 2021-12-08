@@ -10,7 +10,7 @@
 #include <stdbool.h>
 
 #include "ptk-app-chooser.h"
-#include "ptk-utils.h"
+#include "ptk-utils.hxx"
 
 #include <gtk/gtk.h>
 #include <glib.h>

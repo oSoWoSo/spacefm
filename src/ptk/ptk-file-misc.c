@@ -25,7 +25,7 @@
 
 #include <linux/limits.h>
 
-#include "ptk-utils.h"
+#include "ptk-utils.hxx"
 #include "ptk-file-task.h"
 #include "ptk-file-properties.h"
 #include "ptk-file-browser.h"
