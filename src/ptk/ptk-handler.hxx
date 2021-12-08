@@ -1,5 +1,5 @@
 /*
- * SpaceFM ptk-handler.h
+ * SpaceFM ptk-handler.hxx
  *
  * Copyright (C) 2015 IgnorantGuru <ignorantguru@gmx.com>
  * Copyright (C) 2013-2014 OmegaPhil <OmegaPhil@startmail.com>
@@ -11,8 +11,6 @@
  */
 
 #pragma once
-
-#include <stdbool.h>
 
 #include <gtk/gtk.h>
 #include <glib.h>

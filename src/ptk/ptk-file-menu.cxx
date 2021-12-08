@@ -17,7 +17,7 @@
 
 #include "ptk-file-misc.h"
 #include "ptk-file-archiver.hxx"
-#include "ptk-handler.h"
+#include "ptk-handler.hxx"
 #include "ptk-clipboard.hxx"
 #include "ptk-app-chooser.hxx"
 #include "settings.hxx"

@@ -9,17 +9,9 @@
  *
  */
 
-#include <stdbool.h>
-
-#include <string.h>
-#include <stdlib.h>
 #include <fnmatch.h>
-#include <errno.h>
-#include <gdk/gdkkeysyms.h>
 
-#include <exo/exo.h>
-
-#include "ptk-handler.h"
+#include "ptk-handler.hxx"
 
 #include "autosave.hxx"
 #include "utils.hxx"
@@ -2607,7 +2599,7 @@ static void on_option_cb(GtkMenuItem* item, HandlerData* hnd)
             else
             {
                 if (!(folder = xset_get_s("go_set_default")))
-                    folder = "/";
+                    folder = g_strdup("/");
             }
             file = xset_file_dialog(GTK_WIDGET(hnd->dlg),
                                     GTK_FILE_CHOOSER_ACTION_OPEN,
@@ -2762,20 +2754,20 @@ static void on_options_button_clicked(GtkWidget* btn, HandlerData* hnd)
             gtk_container_add(GTK_CONTAINER(popup), gtk_separator_menu_item_new());
             set = xset_get("arc_def_open");
             // do NOT use set = xset_set_cb here or wrong set is passed
-            xset_set_cb("arc_def_open", on_archive_default, set);
+            xset_set_cb("arc_def_open", (GFunc)on_archive_default, set);
             xset_set_ob2(set, NULL, NULL);
             XSet* set_radio = set;
 
             set = xset_get("arc_def_ex");
-            xset_set_cb("arc_def_ex", on_archive_default, set);
+            xset_set_cb("arc_def_ex", (GFunc)on_archive_default, set);
             xset_set_ob2(set, NULL, set_radio);
 
             set = xset_get("arc_def_exto");
-            xset_set_cb("arc_def_exto", on_archive_default, set);
+            xset_set_cb("arc_def_exto", (GFunc)on_archive_default, set);
             xset_set_ob2(set, NULL, set_radio);
 
             set = xset_get("arc_def_list");
-            xset_set_cb("arc_def_list", on_archive_default, set);
+            xset_set_cb("arc_def_list", (GFunc)on_archive_default, set);
             xset_set_ob2(set, NULL, set_radio);
 
             set = xset_get("arc_def_write");
@@ -2818,11 +2810,12 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
     else
         hnd->parent = NULL;
     hnd->browser = file_browser;
-    hnd->dlg = gtk_dialog_new_with_buttons(dialog_titles[mode],
-                                           hnd->parent ? GTK_WINDOW(hnd->parent) : NULL,
-                                           GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-                                           NULL,
-                                           NULL);
+    hnd->dlg = gtk_dialog_new_with_buttons(
+        dialog_titles[mode],
+        hnd->parent ? GTK_WINDOW(hnd->parent) : NULL,
+        GtkDialogFlags(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT),
+        NULL,
+        NULL);
     gtk_container_set_border_width(GTK_CONTAINER(hnd->dlg), 5);
     g_signal_connect(G_OBJECT(hnd->dlg), "key-press-event", G_CALLBACK(on_textview_keypress), hnd);
     g_object_set_data(G_OBJECT(hnd->dlg), "hnd", hnd);
@@ -2841,13 +2834,13 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
 
     // Adding the help button but preventing it from taking the focus on click
     gtk_widget_set_focus_on_click(
-        GTK_BUTTON(gtk_dialog_add_button(GTK_DIALOG(hnd->dlg), "Help", GTK_RESPONSE_HELP)),
+        GTK_WIDGET(gtk_dialog_add_button(GTK_DIALOG(hnd->dlg), "Help", GTK_RESPONSE_HELP)),
         FALSE);
 
     // Adding standard buttons and saving references in the dialog
     // 'Restore defaults' button has custom text but a stock image
     hnd->btn_defaults = gtk_dialog_add_button(GTK_DIALOG(hnd->dlg), "Opt_ions", GTK_RESPONSE_NONE);
-    gtk_widget_set_focus_on_click(GTK_BUTTON(hnd->btn_defaults), FALSE);
+    gtk_widget_set_focus_on_click(GTK_WIDGET(hnd->btn_defaults), FALSE);
     // use clicked event because menu only shown once from dialog run???
     g_signal_connect(G_OBJECT(hnd->btn_defaults),
                      "clicked",
@@ -2855,7 +2848,7 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
                      hnd);
 
     hnd->btn_defaults0 = gtk_dialog_add_button(GTK_DIALOG(hnd->dlg), "Defa_ults", GTK_RESPONSE_NO);
-    gtk_widget_set_focus_on_click(GTK_BUTTON(hnd->btn_defaults0), FALSE);
+    gtk_widget_set_focus_on_click(GTK_WIDGET(hnd->btn_defaults0), FALSE);
 
     hnd->btn_cancel = gtk_dialog_add_button(GTK_DIALOG(hnd->dlg), "Cancel", GTK_RESPONSE_CANCEL);
     hnd->btn_ok = gtk_dialog_add_button(GTK_DIALOG(hnd->dlg), "OK", GTK_RESPONSE_OK);
@@ -2865,8 +2858,8 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
     char* str = g_strdup_printf("<b>%s</b>", dialog_mnemonics[mode]);
     gtk_label_set_markup_with_mnemonic(GTK_LABEL(lbl_handlers), str);
     g_free(str);
-    gtk_widget_set_halign(GTK_MISC(lbl_handlers), GTK_ALIGN_START);
-    gtk_widget_set_valign(GTK_MISC(lbl_handlers), GTK_ALIGN_START);
+    gtk_widget_set_halign(GTK_WIDGET(lbl_handlers), GTK_ALIGN_START);
+    gtk_widget_set_valign(GTK_WIDGET(lbl_handlers), GTK_ALIGN_START);
 
     // Generating the main manager list
     // Creating model - xset name then handler name
@@ -2932,7 +2925,7 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
 
     // Treeview widgets
     hnd->btn_remove = gtk_button_new_with_mnemonic("_Remove");
-    gtk_widget_set_focus_on_click(GTK_BUTTON(hnd->btn_remove), FALSE);
+    gtk_widget_set_focus_on_click(GTK_WIDGET(hnd->btn_remove), FALSE);
     gtk_widget_set_sensitive(hnd->btn_remove, FALSE);
     g_signal_connect(G_OBJECT(hnd->btn_remove),
                      "clicked",
@@ -2940,11 +2933,11 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
                      hnd);
 
     hnd->btn_add = gtk_button_new_with_mnemonic("A_dd");
-    gtk_widget_set_focus_on_click(GTK_BUTTON(hnd->btn_add), FALSE);
+    gtk_widget_set_focus_on_click(GTK_WIDGET(hnd->btn_add), FALSE);
     g_signal_connect(G_OBJECT(hnd->btn_add), "clicked", G_CALLBACK(on_configure_button_press), hnd);
 
     hnd->btn_apply = gtk_button_new_with_mnemonic("Appl_y");
-    gtk_widget_set_focus_on_click(GTK_BUTTON(hnd->btn_apply), FALSE);
+    gtk_widget_set_focus_on_click(GTK_WIDGET(hnd->btn_apply), FALSE);
     gtk_widget_set_sensitive(hnd->btn_apply, FALSE);
     g_signal_connect(G_OBJECT(hnd->btn_apply),
                      "clicked",
@@ -2952,12 +2945,12 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
                      hnd);
 
     hnd->btn_up = gtk_button_new_with_mnemonic("U_p");
-    gtk_widget_set_focus_on_click(GTK_BUTTON(hnd->btn_up), FALSE);
+    gtk_widget_set_focus_on_click(GTK_WIDGET(hnd->btn_up), FALSE);
     gtk_widget_set_sensitive(hnd->btn_up, FALSE);
     g_signal_connect(G_OBJECT(hnd->btn_up), "clicked", G_CALLBACK(on_configure_button_press), hnd);
 
     hnd->btn_down = gtk_button_new_with_mnemonic("Do_wn");
-    gtk_widget_set_focus_on_click(GTK_BUTTON(hnd->btn_down), FALSE);
+    gtk_widget_set_focus_on_click(GTK_WIDGET(hnd->btn_down), FALSE);
     gtk_widget_set_sensitive(hnd->btn_down, FALSE);
     g_signal_connect(G_OBJECT(hnd->btn_down),
                      "clicked",
@@ -2967,60 +2960,60 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
     // Generating right-hand side of dialog
     hnd->chkbtn_handler_enabled = gtk_check_button_new_with_mnemonic(
         mode == HANDLER_MODE_FILE ? "Ena_ble as a default opener" : "Ena_ble Handler");
-    gtk_widget_set_focus_on_click(GTK_BUTTON(hnd->chkbtn_handler_enabled), FALSE);
+    gtk_widget_set_focus_on_click(GTK_WIDGET(hnd->chkbtn_handler_enabled), FALSE);
     g_signal_connect(G_OBJECT(hnd->chkbtn_handler_enabled),
                      "toggled",
                      G_CALLBACK(on_configure_handler_enabled_check),
                      hnd);
     GtkWidget* lbl_handler_name = gtk_label_new(NULL);
     gtk_label_set_markup_with_mnemonic(GTK_LABEL(lbl_handler_name), "_Name:");
-    gtk_widget_set_halign(GTK_MISC(lbl_handler_name), GTK_ALIGN_START);
-    gtk_widget_set_valign(GTK_MISC(lbl_handler_name), GTK_ALIGN_CENTER);
+    gtk_widget_set_halign(GTK_WIDGET(lbl_handler_name), GTK_ALIGN_START);
+    gtk_widget_set_valign(GTK_WIDGET(lbl_handler_name), GTK_ALIGN_CENTER);
     GtkWidget* lbl_handler_mime = gtk_label_new(NULL);
     gtk_label_set_markup_with_mnemonic(
         GTK_LABEL(lbl_handler_mime),
         mode == HANDLER_MODE_ARC || mode == HANDLER_MODE_FILE ? "MIM_E Type:" : "Whit_elist:");
-    gtk_widget_set_halign(GTK_MISC(lbl_handler_mime), GTK_ALIGN_START);
-    gtk_widget_set_valign(GTK_MISC(lbl_handler_mime), GTK_ALIGN_CENTER);
+    gtk_widget_set_halign(GTK_WIDGET(lbl_handler_mime), GTK_ALIGN_START);
+    gtk_widget_set_valign(GTK_WIDGET(lbl_handler_mime), GTK_ALIGN_CENTER);
     GtkWidget* lbl_handler_extension = gtk_label_new(NULL);
     gtk_label_set_markup_with_mnemonic(
         GTK_LABEL(lbl_handler_extension),
         mode == HANDLER_MODE_ARC || mode == HANDLER_MODE_FILE ? "P_athname:" : "Bl_acklist:");
-    gtk_widget_set_halign(GTK_MISC(lbl_handler_extension), GTK_ALIGN_START);
-    gtk_widget_set_valign(GTK_MISC(lbl_handler_extension), GTK_ALIGN_END);
+    gtk_widget_set_halign(GTK_WIDGET(lbl_handler_extension), GTK_ALIGN_START);
+    gtk_widget_set_valign(GTK_WIDGET(lbl_handler_extension), GTK_ALIGN_END);
     GtkWidget* lbl_handler_icon;
     if (mode == HANDLER_MODE_FILE)
     {
         lbl_handler_icon = gtk_label_new(NULL);
         gtk_label_set_markup_with_mnemonic(GTK_LABEL(lbl_handler_icon), "_Icon:");
-        gtk_widget_set_halign(GTK_MISC(lbl_handler_icon), GTK_ALIGN_START);
-        gtk_widget_set_valign(GTK_MISC(lbl_handler_icon), GTK_ALIGN_END);
+        gtk_widget_set_halign(GTK_WIDGET(lbl_handler_icon), GTK_ALIGN_START);
+        gtk_widget_set_valign(GTK_WIDGET(lbl_handler_icon), GTK_ALIGN_END);
     }
     else
         lbl_handler_icon = NULL;
 
     GtkWidget* lbl_handler_compress = gtk_label_new(NULL);
     if (mode == HANDLER_MODE_ARC)
-        str = "<b>Co_mpress:</b>";
+        str = g_strdup("<b>Co_mpress:</b>");
     else if (mode == HANDLER_MODE_FILE)
-        str = "<b>Open Co_mmand:</b>";
+        str = g_strdup("<b>Open Co_mmand:</b>");
     else
-        str = "<b>_Mount:</b>";
+        str = g_strdup("<b>_Mount:</b>");
     gtk_label_set_markup_with_mnemonic(GTK_LABEL(lbl_handler_compress), str);
-    gtk_widget_set_halign(GTK_MISC(lbl_handler_compress), GTK_ALIGN_START);
-    gtk_widget_set_valign(GTK_MISC(lbl_handler_compress), GTK_ALIGN_END);
+    gtk_widget_set_halign(GTK_WIDGET(lbl_handler_compress), GTK_ALIGN_START);
+    gtk_widget_set_valign(GTK_WIDGET(lbl_handler_compress), GTK_ALIGN_END);
     GtkWidget* lbl_handler_extract = gtk_label_new(NULL);
     gtk_label_set_markup_with_mnemonic(GTK_LABEL(lbl_handler_extract),
                                        mode == HANDLER_MODE_ARC ? "<b>Ex_tract:</b>"
                                                                 : "<b>Unmoun_t:</b>");
-    gtk_widget_set_halign(GTK_MISC(lbl_handler_extract), GTK_ALIGN_START);
-    gtk_widget_set_valign(GTK_MISC(lbl_handler_extract), GTK_ALIGN_END);
+    gtk_widget_set_halign(GTK_WIDGET(lbl_handler_extract), GTK_ALIGN_START);
+    gtk_widget_set_valign(GTK_WIDGET(lbl_handler_extract), GTK_ALIGN_END);
     GtkWidget* lbl_handler_list = gtk_label_new(NULL);
     gtk_label_set_markup_with_mnemonic(GTK_LABEL(lbl_handler_list),
                                        mode == HANDLER_MODE_ARC ? "<b>Li_st:</b>"
                                                                 : "<b>Propertie_s:</b>");
-    gtk_widget_set_halign(GTK_MISC(lbl_handler_list), GTK_ALIGN_START);
-    gtk_widget_set_valign(GTK_MISC(lbl_handler_list), GTK_ALIGN_END);
+    gtk_widget_set_halign(GTK_WIDGET(lbl_handler_list), GTK_ALIGN_START);
+    gtk_widget_set_valign(GTK_WIDGET(lbl_handler_list), GTK_ALIGN_END);
     hnd->entry_handler_name = gtk_entry_new();
     hnd->entry_handler_mime = gtk_entry_new();
     hnd->entry_handler_extension = gtk_entry_new();
@@ -3028,7 +3021,7 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
     {
         hnd->entry_handler_icon = gtk_entry_new();
         hnd->icon_choose_btn = gtk_button_new_with_mnemonic("C_hoose");
-        gtk_widget_set_focus_on_click(GTK_BUTTON(hnd->icon_choose_btn), FALSE);
+        gtk_widget_set_focus_on_click(GTK_WIDGET(hnd->icon_choose_btn), FALSE);
 
         // keep this
         gtk_button_set_always_show_image(GTK_BUTTON(hnd->icon_choose_btn), TRUE);
@@ -3154,17 +3147,17 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
     hnd->chkbtn_handler_extract_term = gtk_check_button_new_with_label(
         mode == HANDLER_MODE_FILE ? "Run As Task" : "Run In Terminal");
     hnd->chkbtn_handler_list_term = gtk_check_button_new_with_label("Run In Terminal");
-    gtk_widget_set_focus_on_click(GTK_BUTTON(hnd->chkbtn_handler_compress_term), FALSE);
+    gtk_widget_set_focus_on_click(GTK_WIDGET(hnd->chkbtn_handler_compress_term), FALSE);
     g_signal_connect(G_OBJECT(hnd->chkbtn_handler_compress_term),
                      "toggled",
                      G_CALLBACK(on_terminal_toggled),
                      hnd);
-    gtk_widget_set_focus_on_click(GTK_BUTTON(hnd->chkbtn_handler_extract_term), FALSE);
+    gtk_widget_set_focus_on_click(GTK_WIDGET(hnd->chkbtn_handler_extract_term), FALSE);
     g_signal_connect(G_OBJECT(hnd->chkbtn_handler_extract_term),
                      "toggled",
                      G_CALLBACK(on_terminal_toggled),
                      hnd);
-    gtk_widget_set_focus_on_click(GTK_BUTTON(hnd->chkbtn_handler_list_term), FALSE);
+    gtk_widget_set_focus_on_click(GTK_WIDGET(hnd->chkbtn_handler_list_term), FALSE);
     g_signal_connect(G_OBJECT(hnd->chkbtn_handler_list_term),
                      "toggled",
                      G_CALLBACK(on_terminal_toggled),
@@ -3230,7 +3223,7 @@ void ptk_handler_show_config(int mode, PtkFileBrowser* file_browser, XSet* def_h
     gtk_box_pack_start(GTK_BOX(hbox_move_buttons), GTK_WIDGET(hnd->btn_up), TRUE, TRUE, 4);
     gtk_box_pack_start(GTK_BOX(hbox_move_buttons), GTK_WIDGET(hnd->btn_down), TRUE, TRUE, 4);
 
-    gtk_grid_set_row_spacing(GTK_TABLE(grid), 5);
+    gtk_grid_set_row_spacing(GTK_GRID(grid), 5);
 
     gtk_grid_attach(grid, GTK_WIDGET(lbl_handler_name), 0, 0, 1, 1);
     gtk_grid_attach(grid, GTK_WIDGET(hnd->entry_handler_name), 1, 0, 1, 1);

@@ -16,7 +16,7 @@
 
 #include "main-window.hxx"
 
-#include "../ptk/ptk-handler.h"
+#include "../ptk/ptk-handler.hxx"
 #include "../ptk/ptk-location-view.hxx"
 
 #include "utils.hxx"

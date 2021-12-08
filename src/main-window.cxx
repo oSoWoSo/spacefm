@@ -31,7 +31,7 @@
 
 #include "vfs/vfs-utils.hxx"
 #include "ptk/ptk-clipboard.hxx"
-#include "ptk/ptk-handler.h"
+#include "ptk/ptk-handler.hxx"
 
 static void rebuild_menus(FMMainWindow* main_window);
 static void fm_main_window_preference(FMMainWindow* main_window);

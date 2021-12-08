@@ -39,7 +39,7 @@
 #include "../vfs/vfs-execute.hxx"
 
 #include "settings.hxx"
-#include "ptk-handler.h"
+#include "ptk-handler.hxx"
 #include "utils.hxx"
 
 typedef struct ParentInfo

@@ -11,7 +11,7 @@
  */
 
 #include "ptk-location-view.hxx"
-#include "ptk-handler.h"
+#include "ptk-handler.hxx"
 #include "main-window.hxx"
 
 #include "../vfs/vfs-utils.hxx"

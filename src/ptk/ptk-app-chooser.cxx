@@ -9,7 +9,7 @@
 
 #include "../vfs/vfs-app-desktop.hxx"
 
-#include "ptk-handler.h"
+#include "ptk-handler.hxx"
 #include "ptk-utils.hxx"
 
 #include "ptk-app-chooser.hxx"

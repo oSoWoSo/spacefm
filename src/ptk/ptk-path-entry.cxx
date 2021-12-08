@@ -13,7 +13,7 @@
 #include "main-window.hxx"
 
 #include "utils.hxx"
-#include "ptk-handler.h"
+#include "ptk-handler.hxx"
 #include "ptk-location-view.hxx"
 
 static void on_changed(GtkEntry* entry, void* user_data);

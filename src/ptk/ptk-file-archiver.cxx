@@ -12,7 +12,7 @@
 
 #include "ptk-file-archiver.hxx"
 #include "ptk-file-task.hxx"
-#include "ptk-handler.h"
+#include "ptk-handler.hxx"
 
 #include "settings.hxx"
 
