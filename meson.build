@@ -141,7 +141,7 @@ sources = [
 
   'src/mime-type/mime-action.cxx',
   'src/mime-type/mime-cache.cxx',
-  'src/mime-type/mime-type.c',
+  'src/mime-type/mime-type.cxx',
 
   'src/ptk/ptk-app-chooser.c',
   'src/ptk/ptk-clipboard.c',

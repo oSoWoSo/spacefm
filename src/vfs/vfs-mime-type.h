@@ -16,7 +16,7 @@
 
 #include <gdk/gdk.h>
 
-#include "../mime-type/mime-type.h"
+#include "../mime-type/mime-type.hxx"
 
 G_BEGIN_DECLS
 

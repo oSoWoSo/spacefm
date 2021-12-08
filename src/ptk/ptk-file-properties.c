@@ -16,7 +16,7 @@
 
 #include "ptk-file-properties.h"
 
-#include "../mime-type/mime-type.h"
+#include "../mime-type/mime-type.hxx"
 
 #include <sys/types.h>
 #include <pwd.h>

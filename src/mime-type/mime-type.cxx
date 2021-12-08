@@ -21,18 +21,12 @@
 
 /* Currently this library is NOT MT-safe */
 
-#include <stdbool.h>
-#include <stdint.h>
-
-#include "mime-type.h"
-#include "mime-cache.hxx"
-
-#include <string.h>
+#include <cstdint>
 
 #include <fcntl.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+
+#include "mime-type.hxx"
+#include "mime-cache.hxx"
 
 /*
  * FIXME:
@@ -205,7 +199,7 @@ const char* mime_type_get_by_file(const char* filepath, struct stat* statbuf, co
             if (G_LIKELY(G_TRYLOCK(mime_magic_buf)))
                 data = mime_magic_buf;
             else /* the buffer is in use, allocate new one */
-                data = g_malloc(len);
+                data = (char*)g_malloc(len);
 
             len = read(fd, data, len);
 
@@ -215,10 +209,10 @@ const char* mime_type_get_by_file(const char* filepath, struct stat* statbuf, co
                     G_UNLOCK(mime_magic_buf);
                 else
                     g_free(data);
-                data = (void*)-1;
+                data = (char*)-1;
             }
 #endif
-            if (data != (void*)-1)
+            if (data != (char*)-1)
             {
                 int i;
                 for (i = 0; !type && i < n_caches; ++i)
@@ -382,7 +376,7 @@ static char* _mime_type_get_desc_icon(const char* file_path, const char* locale,
     if (!locale)
     {
         const char* const* langs = g_get_language_names();
-        char* dot = strchr(langs[0], '.');
+        char* dot = (char*)strchr(langs[0], '.');
         if (dot)
             locale = _locale = g_strndup(langs[0], (size_t)(dot - langs[0]));
         else
@@ -487,7 +481,7 @@ static void mime_cache_load_all()
         if (caches[i]->magic_max_extent > mime_cache_max_extent)
             mime_cache_max_extent = caches[i]->magic_max_extent;
     }
-    mime_magic_buf = g_malloc(mime_cache_max_extent);
+    mime_magic_buf = (char*)g_malloc(mime_cache_max_extent);
     return;
 }
 
@@ -525,7 +519,7 @@ bool mime_cache_reload(MimeCache* cache)
 
     G_LOCK(mime_magic_buf);
 
-    mime_magic_buf = g_realloc(mime_magic_buf, mime_cache_max_extent);
+    mime_magic_buf = (char*)g_realloc(mime_magic_buf, mime_cache_max_extent);
 
     G_UNLOCK(mime_magic_buf);
 
