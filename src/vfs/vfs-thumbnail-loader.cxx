@@ -20,15 +20,12 @@
  *      MA 02110-1301, USA.
  */
 
-#include <stdbool.h>
-
-#include "vfs-mime-type.h"
-#include "vfs-thumbnail-loader.h"
-#include <string.h>
-#include <stdlib.h>
 #include <sys/stat.h>
 
 #include <libffmpegthumbnailer/videothumbnailerc.h>
+
+#include "vfs-mime-type.h"
+#include "vfs-thumbnail-loader.hxx"
 
 #ifdef USE_XXHASH
 #include "xxhash.h"
@@ -414,7 +411,7 @@ static GdkPixbuf* _vfs_thumbnail_load(const char* file_path, const char* uri, in
         h = gdk_pixbuf_get_height(thumbnail);
     }
     if (!thumbnail || (w < size && h < size) ||
-        !(thumb_mtime = gdk_pixbuf_get_option(thumbnail, "tEXt::Thumb::MTime")) ||
+        !(thumb_mtime = (char*)gdk_pixbuf_get_option(thumbnail, "tEXt::Thumb::MTime")) ||
         strtol(thumb_mtime, NULL, 10) != mtime)
     {
         if (thumbnail)

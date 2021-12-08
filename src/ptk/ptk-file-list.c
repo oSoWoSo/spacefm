@@ -14,7 +14,7 @@
 
 #include "ptk-file-list.h"
 
-#include "../vfs/vfs-thumbnail-loader.h"
+#include "../vfs/vfs-thumbnail-loader.hxx"
 
 #include <string.h>
 

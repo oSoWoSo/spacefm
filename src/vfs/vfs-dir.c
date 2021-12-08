@@ -12,7 +12,7 @@
 #include <stdbool.h>
 
 #include "vfs-dir.h"
-#include "vfs-thumbnail-loader.h"
+#include "vfs-thumbnail-loader.hxx"
 
 #include <string.h>
 
