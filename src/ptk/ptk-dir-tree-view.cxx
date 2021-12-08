@@ -10,18 +10,11 @@
  *
  */
 
-#include <stdbool.h>
-
-#include "ptk-dir-tree-view.h"
-
-#include <glib.h>
-#include <gdk/gdkkeysyms.h>
-
-#include <string.h>
-
 #include "ptk-dir-tree.hxx"
 #include "ptk-file-menu.h"
 #include "ptk-file-task.h"
+
+#include "ptk-dir-tree-view.hxx"
 
 static GQuark dir_tree_view_data = 0;
 
@@ -42,7 +35,7 @@ static bool sel_func(GtkTreeSelection* selection, GtkTreeModel* model, GtkTreePa
                      bool path_currently_selected, void* data);
 
 /*  Drag & Drop/Clipboard targets  */
-static GtkTargetEntry drag_targets[] = {{"text/uri-list", 0, 0}};
+static GtkTargetEntry drag_targets[] = {{(char*)"text/uri-list", 0, 0}};
 
 // MOD drag n drop...
 static void on_dir_tree_view_drag_data_received(GtkWidget* widget, GdkDragContext* drag_context,
@@ -106,10 +99,11 @@ GtkWidget* ptk_dir_tree_view_new(PtkFileBrowser* browser, bool show_hidden)
     /*    exo_icon_view_enable_model_drag_dest (
                 EXO_ICON_VIEW( dir_tree_view ),
                 drag_targets, G_N_ELEMENTS( drag_targets ), GDK_ACTION_ALL ); */
-    gtk_tree_view_enable_model_drag_dest(dir_tree_view,
-                                         drag_targets,
-                                         sizeof(drag_targets) / sizeof(GtkTargetEntry),
-                                         GDK_ACTION_MOVE | GDK_ACTION_COPY | GDK_ACTION_LINK);
+    gtk_tree_view_enable_model_drag_dest(
+        dir_tree_view,
+        drag_targets,
+        sizeof(drag_targets) / sizeof(GtkTargetEntry),
+        GdkDragAction(GDK_ACTION_MOVE | GDK_ACTION_COPY | GDK_ACTION_LINK));
     /*
         gtk_tree_view_enable_model_drag_source ( dir_tree_view,
                                                  ( GDK_CONTROL_MASK | GDK_BUTTON1_MASK |
@@ -136,7 +130,7 @@ GtkWidget* ptk_dir_tree_view_new(PtkFileBrowser* browser, bool show_hidden)
     gtk_tree_view_append_column(dir_tree_view, col);
 
     tree_sel = gtk_tree_view_get_selection(dir_tree_view);
-    gtk_tree_selection_set_select_function(tree_sel, sel_func, NULL, NULL);
+    gtk_tree_selection_set_select_function(tree_sel, (GtkTreeSelectionFunc)sel_func, NULL, NULL);
 
     if (G_UNLIKELY(!dir_tree_view_data))
         dir_tree_view_data = g_quark_from_static_string("show_hidden");
@@ -145,7 +139,7 @@ GtkWidget* ptk_dir_tree_view_new(PtkFileBrowser* browser, bool show_hidden)
     filter = gtk_tree_model_filter_new(model, NULL);
     g_object_unref(G_OBJECT(model));
     gtk_tree_model_filter_set_visible_func(GTK_TREE_MODEL_FILTER(filter),
-                                           filter_func,
+                                           (GtkTreeModelFilterVisibleFunc)filter_func,
                                            dir_tree_view,
                                            NULL);
     gtk_tree_view_set_model(dir_tree_view, filter);
@@ -310,7 +304,7 @@ static GtkTreeModel* get_dir_tree_model()
 
     if (G_UNLIKELY(!dir_tree_model))
     {
-        dir_tree_model = ptk_dir_tree_new(TRUE);
+        dir_tree_model = ptk_dir_tree_new();
         g_object_add_weak_pointer(G_OBJECT(dir_tree_model), (void**)(GtkWidget*)&dir_tree_model);
     }
     else
@@ -488,7 +482,8 @@ static bool on_dir_tree_view_key_press(GtkWidget* view, GdkEventKey* evt, PtkFil
                 return FALSE;
             }
 
-            char* dir_path = ptk_dir_tree_view_get_selected_dir(GTK_TREE_VIEW(view));
+            char* dir_path;
+            dir_path = ptk_dir_tree_view_get_selected_dir(GTK_TREE_VIEW(view));
             if (ptk_file_browser_chdir(browser, dir_path, PTK_FB_CHDIR_ADD_HISTORY))
             {
                 /* show right-click menu
@@ -706,7 +701,7 @@ static bool on_dir_tree_view_drag_motion(GtkWidget* widget, GdkDragContext* drag
     gtk_target_list_unref(target_list);
 
     if (target == GDK_NONE)
-        gdk_drag_status(drag_context, 0, time);
+        gdk_drag_status(drag_context, (GdkDragAction)0, time);
     else
     {
         // Need to set suggested_action because default handler assumes copy

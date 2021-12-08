@@ -37,7 +37,7 @@
 #include "ptk-file-misc.h"
 
 #include "ptk-location-view.h"
-#include "ptk-dir-tree-view.h"
+#include "ptk-dir-tree-view.hxx"
 #include "ptk-dir-tree.hxx"
 
 #include "ptk-file-list.h"
