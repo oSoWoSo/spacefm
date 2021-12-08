@@ -28,7 +28,7 @@
 #include "ptk-file-archiver.h"
 #include "ptk-handler.h"
 #include "ptk-clipboard.h"
-#include "ptk-app-chooser.h"
+#include "ptk-app-chooser.hxx"
 #include "settings.hxx"
 #include "item-prop.hxx"
 #include "main-window.h"

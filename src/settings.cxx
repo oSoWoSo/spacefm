@@ -38,7 +38,7 @@
 #include "vfs/vfs-utils.hxx"
 
 #include "ptk/ptk-utils.hxx"
-#include "ptk/ptk-app-chooser.h"
+#include "ptk/ptk-app-chooser.hxx"
 #include "ptk/ptk-handler.h"
 #include "ptk/ptk-file-menu.h"
 #include "ptk/ptk-location-view.h"

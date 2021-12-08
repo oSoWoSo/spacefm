@@ -143,7 +143,7 @@ sources = [
   'src/mime-type/mime-cache.cxx',
   'src/mime-type/mime-type.cxx',
 
-  'src/ptk/ptk-app-chooser.c',
+  'src/ptk/ptk-app-chooser.cxx',
   'src/ptk/ptk-clipboard.c',
   'src/ptk/ptk-dir-tree.c',
   'src/ptk/ptk-dir-tree-view.c',

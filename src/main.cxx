@@ -27,7 +27,7 @@
 #include "vfs/vfs-thumbnail-loader.hxx"
 
 #include "ptk/ptk-utils.hxx"
-#include "ptk/ptk-app-chooser.h"
+#include "ptk/ptk-app-chooser.hxx"
 #include "ptk/ptk-location-view.h"
 
 #include "find-files.hxx"

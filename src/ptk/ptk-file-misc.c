@@ -29,7 +29,7 @@
 #include "ptk-file-task.h"
 #include "ptk-file-properties.h"
 #include "ptk-file-browser.h"
-#include "ptk-app-chooser.h"
+#include "ptk-app-chooser.hxx"
 #include "ptk-clipboard.h"
 #include "ptk-file-archiver.h"
 #include "ptk-location-view.h"

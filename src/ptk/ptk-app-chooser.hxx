@@ -12,8 +12,6 @@
 
 #pragma once
 
-#include <stdbool.h>
-
 #include <gtk/gtk.h>
 #include "../vfs/vfs-mime-type.hxx"
 

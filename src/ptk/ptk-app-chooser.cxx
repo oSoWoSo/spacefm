@@ -7,21 +7,12 @@
  *
  */
 
-#include <stdbool.h>
-
-#include "ptk-app-chooser.h"
-#include "ptk-utils.hxx"
-
-#include <gtk/gtk.h>
-#include <glib.h>
-#include <string.h>
-
 #include "../vfs/vfs-app-desktop.hxx"
 
-#include "../vfs/vfs-async-task.hxx"
-
-#include "settings.hxx"
 #include "ptk-handler.h"
+#include "ptk-utils.hxx"
+
+#include "ptk-app-chooser.hxx"
 
 enum
 {
