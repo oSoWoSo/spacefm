@@ -9,32 +9,15 @@
  *
  */
 
-#include <stdbool.h>
-
-#include "vfs-file-task.h"
-
-#include <unistd.h>
 #include <fcntl.h>
 #include <utime.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
-#include <glib.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-
-#include "vfs-dir.h"
-#include "settings.hxx"
-#include <sys/wait.h>
 #include "main-window.h"
 #include "vfs-volume.hxx"
 
-#include <linux/limits.h>
-
 #include "utils.hxx"
+
+#include "vfs-file-task.hxx"
 
 const mode_t chmod_flags[] = {S_IRUSR,
                               S_IWUSR,
@@ -68,7 +51,7 @@ static bool should_abort(VFSFileTask* task);
 
 static void vfs_file_task_init(VFSFileTask* task)
 {
-    task->mutex = g_malloc(sizeof(GMutex));
+    task->mutex = (GMutex*)g_malloc(sizeof(GMutex));
     g_mutex_init(task->mutex);
 }
 
@@ -1273,9 +1256,9 @@ static void vfs_file_task_exec(char* src_file, VFSFileTask* task)
     task->current_dest = NULL;
 
     if (task->exec_browser)
-        parent = gtk_widget_get_toplevel(task->exec_browser);
+        parent = gtk_widget_get_toplevel((GtkWidget*)task->exec_browser);
     else if (task->exec_desktop)
-        parent = gtk_widget_get_toplevel(task->exec_desktop);
+        parent = gtk_widget_get_toplevel((GtkWidget*)task->exec_desktop);
 
     task->state = VFS_FILE_TASK_RUNNING;
     string_copy_free(&task->current_file, src_file);
@@ -1319,11 +1302,12 @@ static void vfs_file_task_exec(char* src_file, VFSFileTask* task)
     }
 
     // make tmpdir
-    const char* tmp = xset_get_user_tmp_dir();
+    const char* tmp;
+    tmp = xset_get_user_tmp_dir();
 
     if (!tmp || !g_file_test(tmp, G_FILE_TEST_IS_DIR))
     {
-        str = "Cannot create temporary directory";
+        str = (char*)"Cannot create temporary directory";
         g_warning(str, NULL);
         // do not use xset_msg_dialog if non-main thread
         // vfs_file_task_exec_error( task, 0, str );
@@ -1348,7 +1332,7 @@ static void vfs_file_task_exec(char* src_file, VFSFileTask* task)
             terminal = g_find_program_in_path(terminalv[0]);
         if (!(terminal && terminal[0] == '/'))
         {
-            str = "Please set a valid terminal program in View|Preferences|Advanced";
+            str = (char*)"Please set a valid terminal program in View|Preferences|Advanced";
             g_warning(str, NULL);
             // do not use xset_msg_dialog if non-main thread
             // vfs_file_task_exec_error( task, 0, str );
@@ -1449,7 +1433,7 @@ static void vfs_file_task_exec(char* src_file, VFSFileTask* task)
         }
 
         // build - command
-        print_task_command(task->exec_ptask, task->exec_command);
+        print_task_command((char*)task->exec_ptask, task->exec_command);
 
         g_string_append_printf(buf, "%s\nfm_err=$?\n", task->exec_command);
 
@@ -1492,11 +1476,15 @@ static void vfs_file_task_exec(char* src_file, VFSFileTask* task)
     GPid pid;
     char* argv[35];
     int out, err;
-    int a = 0;
+    int a;
     char* use_su;
-    bool single_arg = FALSE;
-    char* auth = NULL;
+    bool single_arg;
+    char* auth;
     int i;
+
+    a = 0;
+    single_arg = FALSE;
+    auth = NULL;
 
     if (terminal)
     {
@@ -1635,7 +1623,8 @@ static void vfs_file_task_exec(char* src_file, VFSFileTask* task)
     if (su)
         g_free(su);
 
-    char* first_arg = g_strdup(argv[0]);
+    char* first_arg;
+    first_arg = g_strdup(argv[0]);
     if (task->exec_sync)
     {
         result = g_spawn_async_with_pipes(task->dest_dir,
@@ -1720,13 +1709,13 @@ static void vfs_file_task_exec(char* src_file, VFSFileTask* task)
     // GLib or GTK+."
     g_io_add_watch_full(task->exec_channel_out,
                         G_PRIORITY_LOW,
-                        G_IO_IN | G_IO_HUP | G_IO_NVAL | G_IO_ERR, // want ERR?
+                        GIOCondition(G_IO_IN | G_IO_HUP | G_IO_NVAL | G_IO_ERR), // want ERR?
                         (GIOFunc)cb_exec_out_watch,
                         task,
                         NULL);
     g_io_add_watch_full(task->exec_channel_err,
                         G_PRIORITY_LOW,
-                        G_IO_IN | G_IO_HUP | G_IO_NVAL | G_IO_ERR, // want ERR?
+                        GIOCondition(G_IO_IN | G_IO_HUP | G_IO_NVAL | G_IO_ERR), // want ERR?
                         (GIOFunc)cb_exec_out_watch,
                         task,
                         NULL);
@@ -1740,8 +1729,8 @@ static void vfs_file_task_exec(char* src_file, VFSFileTask* task)
     // out and err can/should be closed too?
 
 _exit_with_error:
-    vfs_file_task_exec_error(task, errno, "Error writing temporary file");
-    g_string_free(buf, TRUE);
+    vfs_file_task_exec_error(task, errno, (char*)"Error writing temporary file");
+    g_string_free((GString*)buf, TRUE);
 
     if (!task->exec_keep_tmp)
     {
@@ -1998,7 +1987,7 @@ VFSFileTask* vfs_task_new(VFSFileTaskType type, GList* src_files, const char* de
  * and stored in VFSFileTask */
 void vfs_file_task_set_chmod(VFSFileTask* task, unsigned char* chmod_actions)
 {
-    task->chmod_actions = g_slice_alloc(sizeof(unsigned char) * N_CHMOD_ACTIONS);
+    task->chmod_actions = (unsigned char*)g_slice_alloc(sizeof(unsigned char) * N_CHMOD_ACTIONS);
     memcpy((void*)task->chmod_actions,
            (void*)chmod_actions,
            sizeof(unsigned char) * N_CHMOD_ACTIONS);
@@ -2023,7 +2012,7 @@ void vfs_file_task_run(VFSFileTask* task)
         else
             task->avoid_changes = vfs_volume_dir_avoid_changes(task->dest_dir);
 
-        task->thread = g_thread_new("task_run", vfs_file_task_thread, task);
+        task->thread = g_thread_new("task_run", (GThreadFunc)vfs_file_task_thread, task);
     }
     else
     {

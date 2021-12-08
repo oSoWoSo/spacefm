@@ -15,7 +15,7 @@
 #include <string.h>
 
 #include "../vfs/vfs-file-info.h"
-#include "../vfs/vfs-file-task.h"
+#include "../vfs/vfs-file-task.hxx"
 
 #include "ptk-file-task.h"
 #include "ptk-file-misc.h"

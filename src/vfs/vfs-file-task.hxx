@@ -12,10 +12,7 @@
 
 #pragma once
 
-#include <stdbool.h>
-
 #include <glib.h>
-#include <sys/types.h>
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS

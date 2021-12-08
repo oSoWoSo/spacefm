@@ -14,7 +14,7 @@
 
 #include <stdbool.h>
 
-#include "../vfs/vfs-file-task.h"
+#include "../vfs/vfs-file-task.hxx"
 
 #include <glib.h>
 #include <gtk/gtk.h>
