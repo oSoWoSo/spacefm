@@ -4,36 +4,15 @@
  *
  */
 
-#include <stdbool.h>
-#include <stdint.h>
-
-#include <unistd.h>
-
-#include <gtk/gtk.h>
-
-#include <glib.h>
-
-#include <string.h>
-#include <stdlib.h>
 #include <malloc.h>
-
-#include <linux/limits.h>
-
-#include <fcntl.h>
-
-#include <sys/stat.h>
-#include <errno.h>
 
 #include <fnmatch.h>
 
 #include <exo/exo.h>
 
-#include "ptk-file-browser.h"
-
 #include "settings.hxx"
 
 #include "ptk-utils.hxx"
-#include "ptk-file-task.hxx"
 #include "ptk-file-misc.h"
 
 #include "ptk-location-view.h"

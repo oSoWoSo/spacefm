@@ -6,9 +6,6 @@
 
 #pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <gtk/gtk.h>
 #include <sys/types.h>
 
