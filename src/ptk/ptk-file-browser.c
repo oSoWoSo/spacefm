@@ -24,7 +24,7 @@
 #include "ptk-clipboard.hxx"
 
 #include "ptk-file-menu.hxx"
-#include "ptk-path-entry.h"
+#include "ptk-path-entry.hxx"
 #include "main-window.hxx"
 
 #include "utils.hxx"

@@ -8,13 +8,8 @@
  *
  */
 
-#include <stdbool.h>
+#include "ptk-path-entry.hxx"
 
-#include "ptk-path-entry.h"
-#include <gdk/gdkkeysyms.h>
-
-#include <string.h>
-#include "settings.hxx"
 #include "main-window.hxx"
 
 #include "utils.hxx"
@@ -197,7 +192,10 @@ static void update_completion(GtkEntry* entry, GtkEntryCompletion* completion)
             gtk_list_store_append(list, &it);
             gtk_list_store_set(list, &it, COL_NAME, (char*)l->data, COL_PATH, (char*)l->data, -1);
         }
-        gtk_entry_completion_set_match_func(completion, match_func_cmd, NULL, NULL);
+        gtk_entry_completion_set_match_func(completion,
+                                            (GtkEntryCompletionMatchFunc)match_func_cmd,
+                                            NULL,
+                                            NULL);
     }
     else
     {
@@ -257,7 +255,10 @@ static void update_completion(GtkEntry* entry, GtkEntryCompletion* completion)
                 }
                 g_slist_free(name_list);
 
-                gtk_entry_completion_set_match_func(completion, match_func, NULL, NULL);
+                gtk_entry_completion_set_match_func(completion,
+                                                    (GtkEntryCompletionMatchFunc)match_func,
+                                                    NULL,
+                                                    NULL);
             }
             else
                 gtk_entry_completion_set_match_func(completion, NULL, NULL, NULL);
@@ -365,7 +366,7 @@ static void insert_complete(GtkEntry* entry)
                                         0,
                                         0,
                                         NULL,
-                                        on_changed,
+                                        (void*)on_changed,
                                         NULL);
         gtk_entry_set_text(GTK_ENTRY(entry), new_prefix);
         gtk_editable_set_position((GtkEditable*)entry, -1);
@@ -374,7 +375,7 @@ static void insert_complete(GtkEntry* entry)
                                           0,
                                           0,
                                           NULL,
-                                          on_changed,
+                                          (void*)on_changed,
                                           NULL);
         g_free(new_prefix);
     }
@@ -433,7 +434,7 @@ static bool on_match_selected(GtkEntryCompletion* completion, GtkTreeModel* mode
                                         0,
                                         0,
                                         NULL,
-                                        on_changed,
+                                        (void*)on_changed,
                                         NULL);
 
         gtk_entry_set_text(GTK_ENTRY(entry), path);
@@ -444,7 +445,7 @@ static bool on_match_selected(GtkEntryCompletion* completion, GtkTreeModel* mode
                                           0,
                                           0,
                                           NULL,
-                                          on_changed,
+                                          (void*)on_changed,
                                           NULL);
         on_changed(GTK_ENTRY(entry), NULL);
         seek_path_delayed(GTK_ENTRY(entry), 10);
@@ -483,7 +484,7 @@ static bool on_focus_in(GtkWidget* entry, GdkEventFocus* evt, void* user_data)
 
 static bool on_focus_out(GtkWidget* entry, GdkEventFocus* evt, void* user_data)
 {
-    g_signal_handlers_disconnect_by_func(entry, on_changed, NULL);
+    g_signal_handlers_disconnect_by_func(entry, (void*)on_changed, NULL);
     gtk_entry_set_completion(GTK_ENTRY(entry), NULL);
     return FALSE;
 }
@@ -614,7 +615,7 @@ static void on_populate_popup(GtkEntry* entry, GtkMenu* menu, PtkFileBrowser* fi
     xset_add_menuitem(file_browser, GTK_WIDGET(menu), accel_group, set);
 
     // New Bookmark
-    set = xset_set_cb("book_add", on_add_bookmark, file_browser);
+    set = xset_set_cb("book_add", (GFunc)on_add_bookmark, file_browser);
     const char* text = gtk_entry_get_text(GTK_ENTRY(entry));
     set->disable = !(text && (g_file_test(text, G_FILE_TEST_EXISTS) || strstr(text, ":/") ||
                               g_str_has_prefix(text, "//")));
@@ -622,9 +623,9 @@ static void on_populate_popup(GtkEntry* entry, GtkMenu* menu, PtkFileBrowser* fi
 
     set = xset_get("path_seek");
     xset_add_menuitem(file_browser, GTK_WIDGET(menu), accel_group, set);
-    set = xset_set_cb("path_hand", on_protocol_handlers, file_browser);
+    set = xset_set_cb("path_hand", (GFunc)on_protocol_handlers, file_browser);
     xset_add_menuitem(file_browser, GTK_WIDGET(menu), accel_group, set);
-    set = xset_set_cb("path_help", ptk_path_entry_man, file_browser);
+    set = xset_set_cb("path_help", (GFunc)ptk_path_entry_man, file_browser);
     xset_add_menuitem(file_browser, GTK_WIDGET(menu), accel_group, set);
     gtk_widget_show_all(GTK_WIDGET(menu));
     g_signal_connect(menu, "key-press-event", G_CALLBACK(xset_menu_keypress), NULL);
