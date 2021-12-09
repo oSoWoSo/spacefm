@@ -3,9 +3,10 @@ project(
   version : '3.0.0-dev',
   license : 'GPL2 LGPL',
   default_options : [
-      'warning_level=3',
-      'prefix=/usr',
-      'sysconfdir=/etc',
+    'cpp_std=c++20',
+    'warning_level=3',
+    'prefix=/usr',
+    'sysconfdir=/etc',
   ],
   meson_version : '>= 0.49'
 )
