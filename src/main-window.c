@@ -44,7 +44,7 @@
 
 #include "settings.h"
 #include "item-prop.h"
-#include "find-files.h"
+#include "find-files.hxx"
 
 #include "autosave.hxx"
 #include "utils.hxx"

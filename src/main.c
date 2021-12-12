@@ -46,7 +46,7 @@
 #include "ptk/ptk-app-chooser.h"
 #include "ptk/ptk-location-view.h"
 
-#include "find-files.h"
+#include "find-files.hxx"
 #include "pref-dialog.h"
 #include "settings.h"
 
@@ -931,9 +931,9 @@ int main(int argc, char* argv[])
     cli_flags.reuse_tab = FALSE; // sfm
     cli_flags.no_tabs = FALSE;   // sfm
     cli_flags.new_window = FALSE;
-    cli_flags.socket_cmd = FALSE;    // sfm
-    cli_flags.version_opt = FALSE;   // sfm
-    cli_flags.sdebug = FALSE;        // sfm
+    cli_flags.socket_cmd = FALSE;  // sfm
+    cli_flags.version_opt = FALSE; // sfm
+    cli_flags.sdebug = FALSE;      // sfm
 
     cli_flags.daemon_mode = FALSE;
 

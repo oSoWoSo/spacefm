@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include <gtk/gtk.h>
-
 G_BEGIN_DECLS
 
 void fm_find_files(const char** search_dirs);
