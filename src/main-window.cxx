@@ -30,6 +30,7 @@
 /* FIXME: statvfs support should be moved to src/vfs */
 #include <sys/statvfs.h>
 
+#include "vfs/vfs-user-dir.hxx"
 #include "vfs/vfs-utils.hxx"
 #include "ptk/ptk-clipboard.hxx"
 #include "ptk/ptk-handler.hxx"
@@ -395,7 +396,7 @@ import_all_plugins(FMMainWindow* main_window)
     paths = g_list_append(paths, g_build_filename(DATADIR, "spacefm", "included", nullptr));
     paths = g_list_append(paths, g_build_filename(DATADIR, "spacefm", "plugins", nullptr));
 
-    const char* const* sdir = g_get_system_data_dirs();
+    const char* const* sdir = vfs_system_data_dir();
     for (; *sdir; ++sdir)
     {
         path = g_build_filename(*sdir, "spacefm", "included", nullptr);
@@ -1178,7 +1179,7 @@ show_panels(GtkMenuItem* item, FMMainWindow* main_window)
                             if (g_str_has_prefix(tab_dir, "~/"))
                             {
                                 // convert ~ to /home/user for hacked session files
-                                str = g_strdup_printf("%s%s", g_get_home_dir(), tab_dir + 1);
+                                str = g_strdup_printf("%s%s", vfs_user_home_dir(), tab_dir + 1);
                                 g_free(tab_dir);
                                 tab_dir = str;
                             }
@@ -1187,7 +1188,7 @@ show_panels(GtkMenuItem* item, FMMainWindow* main_window)
                             else if (!(folder_path = xset_get_s("go_set_default")))
                             {
                                 if (geteuid() != 0)
-                                    folder_path = g_get_home_dir();
+                                    folder_path = vfs_user_home_dir();
                                 else
                                     folder_path = g_strdup("/");
                             }
@@ -1225,7 +1226,7 @@ show_panels(GtkMenuItem* item, FMMainWindow* main_window)
                     if (!(folder_path = xset_get_s("go_set_default")))
                     {
                         if (geteuid() != 0)
-                            folder_path = g_get_home_dir();
+                            folder_path = vfs_user_home_dir();
                         else
                             folder_path = g_strdup("/");
                     }
@@ -2281,7 +2282,7 @@ on_close_notebook_page(GtkButton* btn, PtkFileBrowser* file_browser)
         if (!(path && path[0] != '\0'))
         {
             if (geteuid() != 0)
-                path = g_get_home_dir();
+                path = vfs_user_home_dir();
             else
                 path = g_strdup("/");
         }
