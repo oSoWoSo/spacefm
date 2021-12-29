@@ -458,7 +458,7 @@ load_settings(const char* config_dir)
     char* terminal = xset_get_s("main_terminal");
     if (!terminal || terminal[0] == '\0')
     {
-        int i;
+        unsigned int i;
         for (i = 0; i < G_N_ELEMENTS(terminal_programs); i++)
         {
             char* term;
@@ -1763,7 +1763,7 @@ read_root_settings()
 XSetContext*
 xset_context_new()
 {
-    int i;
+    unsigned int i;
     if (!xset_context)
     {
         xset_context = g_slice_new0(XSetContext);
@@ -4180,7 +4180,8 @@ xset_set_key(GtkWidget* parent, XSet* set)
     char* name;
     char* keymsg;
     XSet* keyset;
-    int newkey = 0, newkeymod = 0;
+    unsigned int newkey = 0;
+    unsigned int newkeymod = 0;
     GtkWidget* dlgparent = nullptr;
 
     if (set->menu_label)
@@ -4261,7 +4262,7 @@ xset_set_key(GtkWidget* parent, XSet* set)
         }
         else if (response == GTK_RESPONSE_NO)
         {
-            newkey = -1; // unset
+            newkey = 0; // unset
             newkeymod = 0;
         }
         // plugin? set shared_key to mirror if not
@@ -5315,7 +5316,6 @@ xset_design_show_menu(GtkWidget* menu, XSet* set, XSet* book_insert, unsigned in
 
     // XSet* mset;
     XSet* insert_set;
-    int i;
 
     // book_insert is a bookmark set to be used for Paste, etc
     insert_set = book_insert ? book_insert : set;
@@ -5474,7 +5474,7 @@ xset_design_show_menu(GtkWidget* menu, XSet* set, XSet* book_insert, unsigned in
         g_object_set_data(G_OBJECT(newitem), "job", GINT_TO_POINTER(XSET_JOB_HELP_ADD));
         g_signal_connect(submenu, "key_press_event", G_CALLBACK(xset_design_menu_keypress), set);
 
-        for (i = XSET_TOOL_DEVICES; i < G_N_ELEMENTS(builtin_tool_name); i++)
+        for (unsigned int i = XSET_TOOL_DEVICES; i < G_N_ELEMENTS(builtin_tool_name); i++)
         {
             newitem =
                 xset_design_additem(submenu, builtin_tool_name[i], XSET_JOB_ADD_TOOL, insert_set);
@@ -9197,7 +9197,7 @@ xset_defaults()
 }
 
 static void
-def_key(const char* name, int key, int keymod)
+def_key(const char* name, unsigned int key, unsigned int keymod)
 {
     XSet* set = xset_get(name);
 
