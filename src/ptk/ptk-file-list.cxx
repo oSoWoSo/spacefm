@@ -97,7 +97,8 @@ ptk_file_list_get_type()
                                             nullptr, /* class_data */
                                             sizeof(PtkFileList),
                                             0, /* n_preallocs */
-                                            (GInstanceInitFunc)ptk_file_list_init};
+                                            (GInstanceInitFunc)ptk_file_list_init,
+                                            nullptr /* value_table */};
 
         static const GInterfaceInfo tree_model_info = {
             (GInterfaceInitFunc)ptk_file_list_tree_model_init,
