@@ -66,19 +66,14 @@ extern AppSettings app_settings;
 
 struct ConfigSettings
 {
-    /* su */
-    char* terminal_su;
-    // char* graphical_su;
+    const char* terminal_su{nullptr};
+    const char* tmp_dir{nullptr};
 
-    /* tmp dir */
-    const char* tmp_dir;
+    const char* font_view_icon{nullptr};
+    const char* font_view_compact{nullptr};
+    const char* font_general{nullptr}; // NOOP
 
-    /* Fonts */
-    const char* font_view_icon;
-    const char* font_view_compact;
-    const char* font_general; // NOOP
-
-    bool git_backed_settings;
+    bool git_backed_settings{true};
 };
 
 extern ConfigSettings config_settings;
