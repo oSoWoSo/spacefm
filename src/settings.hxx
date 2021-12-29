@@ -314,19 +314,19 @@ struct XSet
 // cache these for speed in event handlers
 struct EventHandler
 {
-    XSet* win_focus;
-    XSet* win_move;
-    XSet* win_click;
-    XSet* win_key;
-    XSet* win_close;
-    XSet* pnl_show;
-    XSet* pnl_focus;
-    XSet* pnl_sel;
-    XSet* tab_new;
-    XSet* tab_chdir;
-    XSet* tab_focus;
-    XSet* tab_close;
-    XSet* device;
+    XSet* win_focus{nullptr};
+    XSet* win_move{nullptr};
+    XSet* win_click{nullptr};
+    XSet* win_key{nullptr};
+    XSet* win_close{nullptr};
+    XSet* pnl_show{nullptr};
+    XSet* pnl_focus{nullptr};
+    XSet* pnl_sel{nullptr};
+    XSet* tab_new{nullptr};
+    XSet* tab_chdir{nullptr};
+    XSet* tab_focus{nullptr};
+    XSet* tab_close{nullptr};
+    XSet* device{nullptr};
 };
 
 extern EventHandler event_handler;
