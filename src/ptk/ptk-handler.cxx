@@ -414,7 +414,7 @@ static const Handler handlers_net[] = {
      *      user=USERNAME
      *      point=MOUNT_POINT
      *
-     *      eg: +ssh url=ssh://*
+     *      eg: +ssh url=ssh://...
      */
     {"hand_net_+http",
      "http & webdav",
