@@ -4455,7 +4455,7 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
             buf.append(fmt::format("fm_task_command={}\n", esc_path));
             if (!ptask->task->exec_as_user.empty())
                 buf.append(fmt::format("fm_task_user=\"{}\"\n", ptask->task->exec_as_user));
-            if (ptask->task->exec_icon)
+            if (!ptask->task->exec_icon.empty())
                 buf.append(fmt::format("fm_task_icon=\"{}\"\n", ptask->task->exec_icon));
             if (ptask->task->exec_pid)
                 buf.append(fmt::format("fm_task_pid=\"{}\"\n", ptask->task->exec_pid));
@@ -5405,38 +5405,37 @@ main_task_view_update_task(PtkFileTask* ptask)
         if (ptask->pause_change_view)
         {
             // icon
-            char* iname;
+            std::string iname;
             if (ptask->task->state_pause == VFS_FILE_TASK_PAUSE)
             {
                 set = xset_get("task_pause");
-                iname = g_strdup(set->icon ? set->icon : "media-playback-pause");
+                iname = set->icon ? set->icon : "media-playback-pause";
             }
             else if (ptask->task->state_pause == VFS_FILE_TASK_QUEUE)
             {
                 set = xset_get("task_que");
-                iname = g_strdup(set->icon ? set->icon : "list-add");
+                iname = set->icon ? set->icon : "list-add";
             }
             else if (ptask->err_count && ptask->task->type != VFS_FILE_TASK_EXEC)
-                iname = g_strdup_printf("error");
+                iname = "error";
             else if (ptask->task->type == 0 || ptask->task->type == 1 || ptask->task->type == 4)
-                iname = g_strdup_printf("stock_copy");
+                iname = "stock_copy";
             else if (ptask->task->type == 2 || ptask->task->type == 3)
-                iname = g_strdup_printf("stock_delete");
-            else if (ptask->task->type == VFS_FILE_TASK_EXEC && ptask->task->exec_icon)
-                iname = g_strdup(ptask->task->exec_icon);
+                iname = "stock_delete";
+            else if (ptask->task->type == VFS_FILE_TASK_EXEC && !ptask->task->exec_icon.empty())
+                iname = ptask->task->exec_icon;
             else
-                iname = g_strdup_printf("gtk-execute");
+                iname = "gtk-execute";
 
             int icon_size = app_settings.small_icon_size;
             if (icon_size > PANE_MAX_ICON_SIZE)
                 icon_size = PANE_MAX_ICON_SIZE;
 
             pixbuf = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(),
-                                              iname,
+                                              iname.c_str(),
                                               icon_size,
                                               (GtkIconLookupFlags)GTK_ICON_LOOKUP_USE_BUILTIN,
                                               nullptr);
-            g_free(iname);
             if (!pixbuf)
                 pixbuf = gtk_icon_theme_load_icon(gtk_icon_theme_get_default(),
                                                   "gtk-execute",
@@ -6781,8 +6780,7 @@ main_window_socket_command(char* argv[], char** reply)
         if (!strcmp(argv[i + 1], "icon"))
         {
             ptk_file_task_lock(ptask);
-            g_free(ptask->task->exec_icon);
-            ptask->task->exec_icon = g_strdup(argv[i + 2]);
+            ptask->task->exec_icon = argv[i + 2];
             ptask->pause_change_view = ptask->pause_change = true;
             ptk_file_task_unlock(ptask);
             return 0;
@@ -6899,8 +6897,8 @@ main_window_socket_command(char* argv[], char** reply)
         if (!strcmp(argv[i + 1], "icon"))
         {
             ptk_file_task_lock(ptask);
-            if (ptask->task->exec_icon)
-                *reply = g_strdup_printf("%s\n", ptask->task->exec_icon);
+            if (!ptask->task->exec_icon.empty())
+                *reply = g_strdup_printf("%s\n", ptask->task->exec_icon.c_str());
             ptk_file_task_unlock(ptask);
             return 0;
         }
@@ -7035,7 +7033,7 @@ main_window_socket_command(char* argv[], char** reply)
             ptask->task->exec_browser = file_browser;
             ptask->task->exec_command = cmd;
             ptask->task->exec_as_user = opt_user;
-            ptask->task->exec_icon = g_strdup(opt_icon);
+            ptask->task->exec_icon = opt_icon;
             ptask->task->exec_terminal = opt_terminal;
             ptask->task->exec_keep_terminal = false;
             ptask->task->exec_sync = opt_task;
@@ -7640,7 +7638,7 @@ run_event(FMMainWindow* main_window, PtkFileBrowser* file_browser, XSet* preset,
                                                   main_window->task_view);
             task->task->exec_browser = file_browser;
             task->task->exec_command = cmd;
-            task->task->exec_icon = g_strdup(set->icon);
+            task->task->exec_icon = set->icon;
             task->task->exec_sync = false;
             task->task->exec_export = true;
             ptk_file_task_run(task);
