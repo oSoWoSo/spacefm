@@ -4099,8 +4099,8 @@ main_context_fill(PtkFileBrowser* file_browser, XSetContext* c)
         c->var[CONTEXT_TASK_TYPE] = g_strdup(job_titles[ptask->task->type]);
         if (ptask->task->type == VFS_FILE_TASK_EXEC)
         {
-            c->var[CONTEXT_TASK_NAME] = const_cast<char*>(ptask->task->current_file.c_str());
-            c->var[CONTEXT_TASK_DIR] = g_strdup(ptask->task->dest_dir);
+            c->var[CONTEXT_TASK_NAME] = g_strdup(ptask->task->current_file.c_str());
+            c->var[CONTEXT_TASK_DIR] = g_strdup(ptask->task->dest_dir.c_str());
         }
         else
         {
@@ -4160,7 +4160,7 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
     XSet* set = XSET(vtask->exec_set);
 
     buf.append("\n#source");
-    // g_string_append(buf, "\n#source\ncp $0 /tmp\n");
+    // buf.append("\n\ncp $0 /tmp\n\n");
 
     // panels
     int p;
@@ -4447,7 +4447,7 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
         buf.append(fmt::format("\nfm_task_type=\"{}\"\n", job_titles[ptask->task->type]));
         if (ptask->task->type == VFS_FILE_TASK_EXEC)
         {
-            esc_path = bash_quote(ptask->task->dest_dir);
+            esc_path = bash_quote(ptask->task->dest_dir.c_str());
             buf.append(fmt::format("fm_task_pwd={}\n", esc_path));
             esc_path = bash_quote(ptask->task->current_file.c_str());
             buf.append(fmt::format("fm_task_name={}\n", esc_path));
@@ -4462,7 +4462,7 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
         }
         else
         {
-            esc_path = bash_quote(ptask->task->dest_dir);
+            esc_path = bash_quote(ptask->task->dest_dir.c_str());
             buf.append(fmt::format("fm_task_dest_dir={}\n", esc_path));
             esc_path = bash_quote(ptask->task->current_file.c_str());
             buf.append(fmt::format("fm_task_current_src_file={}\n", esc_path));
@@ -5287,9 +5287,7 @@ main_task_view_update_task(PtkFileTask* ptask)
     GtkTreeModel* model;
     GtkTreeIter it;
     GdkPixbuf* pixbuf;
-    char* dest_dir;
-    char* path = nullptr;
-    char* file = nullptr;
+    const char* dest_dir;
     XSet* set;
 
     // LOG_INFO("main_task_view_update_task  ptask={}", ptask);
@@ -5315,7 +5313,7 @@ main_task_view_update_task(PtkFileTask* ptask)
         return;
 
     if (ptask->task->type != VFS_FILE_TASK_EXEC)
-        dest_dir = ptask->task->dest_dir;
+        dest_dir = ptask->task->dest_dir.c_str();
     else
         dest_dir = nullptr;
 
@@ -5351,6 +5349,9 @@ main_task_view_update_task(PtkFileTask* ptask)
     if (ptask->task->state_pause == VFS_FILE_TASK_RUNNING || ptask->pause_change_view)
     {
         // update row
+        const char* path;
+        const char* file;
+
         int percent = ptask->task->percent;
         if (percent < 0)
             percent = 0;
@@ -5366,7 +5367,7 @@ main_task_view_update_task(PtkFileTask* ptask)
         }
         else
         {
-            path = g_strdup(ptask->task->dest_dir); // cwd
+            path = ptask->task->dest_dir.c_str(); // cwd
             file = g_strdup_printf("( %s )", ptask->task->current_file.c_str());
         }
 
@@ -5526,8 +5527,6 @@ main_task_view_update_task(PtkFileTask* ptask)
                                -1);
 
         // Clearing up
-        g_free(file);
-        g_free(path);
         g_free(status2);
         g_free(status3);
         if (pixbuf)
