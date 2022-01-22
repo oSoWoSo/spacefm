@@ -4151,7 +4151,7 @@ void
 main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
 {
     char* path;
-    char* esc_path;
+    std::string esc_path;
     PtkFileTask* ptask;
 
     PtkFileBrowser* file_browser = static_cast<PtkFileBrowser*>(vtask->exec_browser);
@@ -4212,7 +4212,6 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
                     path = g_build_filename(cwd, path, nullptr);
                     esc_path = bash_quote(path);
                     buf.append(fmt::format("{}\n", esc_path));
-                    g_free(esc_path);
                     g_free(path);
                 }
             }
@@ -4230,7 +4229,6 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
                     {
                         esc_path = bash_quote(path);
                         buf.append(fmt::format("{}\n", esc_path));
-                        g_free(esc_path);
                     }
                 }
                 buf.append(fmt::format(")\n"));
@@ -4250,7 +4248,6 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
                 if (file_browser == a_browser)
                     buf.append(fmt::format("fm_bookmark={}\n", esc_path));
                 buf.append(fmt::format("fm_panel{}_bookmark={}\n", p, esc_path));
-                g_free(esc_path);
             }
         }
 
@@ -4267,19 +4264,16 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
                     {
                         esc_path = bash_quote(vol->udi);
                         buf.append(fmt::format("fm_device_udi={}\n", esc_path));
-                        g_free(esc_path);
                     }
                     if (vol->mount_point)
                     {
                         esc_path = bash_quote(vol->mount_point);
                         buf.append(fmt::format("fm_device_mount_point={}\n", esc_path));
-                        g_free(esc_path);
                     }
                     if (vol->label)
                     {
                         esc_path = bash_quote(vol->label);
                         buf.append(fmt::format("fm_device_label={}\n", esc_path));
-                        g_free(esc_path);
                     }
                     if (vol->fs_type)
                         buf.append(fmt::format("fm_device_fstype=\"{}\"\n", vol->fs_type));
@@ -4288,7 +4282,6 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
                     {
                         esc_path = bash_quote(vol->disp_name);
                         buf.append(fmt::format("fm_device_display_name=\"%{}\"\n", esc_path));
-                        g_free(esc_path);
                     }
                     // clang-format off
                     buf.append(fmt::format("fm_device_icon=\"{}\"\n", vol->icon));
@@ -4308,19 +4301,16 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
                 {
                     esc_path = bash_quote(vol->udi);
                     buf.append(fmt::format("fm_panel{}_device_udi={}\n", p, esc_path));
-                    g_free(esc_path);
                 }
                 if (vol->mount_point)
                 {
                     esc_path = bash_quote(vol->mount_point);
                     buf.append(fmt::format("fm_panel{}_device_mount_point={}\n", p, esc_path));
-                    g_free(esc_path);
                 }
                 if (vol->label)
                 {
                     esc_path = bash_quote(vol->label);
                     buf.append(fmt::format("fm_panel{}_device_label={}\n", p, esc_path));
-                    g_free(esc_path);
                 }
                 if (vol->fs_type)
                     buf.append(fmt::format("fm_panel{}_device_fstype=\"{}\"\n", p, vol->fs_type));
@@ -4329,7 +4319,6 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
                 {
                     esc_path = bash_quote(vol->disp_name);
                     buf.append(fmt::format("fm_panel{}_device_display_name={}\n", p, esc_path));
-                    g_free(esc_path);
                 }
                 buf.append(fmt::format("fm_panel{}_device_icon=\"{}\"\n", p, vol->icon));
                 buf.append(fmt::format("fm_panel{}_device_is_mounted=\"{}\"\n", p, vol->is_mounted ? 1 : 0));
@@ -4378,7 +4367,6 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
     {
         esc_path = bash_quote(this_user);
         buf.append(fmt::format("fm_user={}\n", esc_path));
-        g_free(esc_path);
         // g_free( this_user );  DON'T
     }
     // variable value
@@ -4386,7 +4374,6 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
     {
         esc_path = bash_quote(value);
         buf.append(fmt::format("fm_value={}\n", esc_path));
-        g_free(esc_path);
     }
     if (vtask->exec_ptask)
     {
@@ -4399,7 +4386,6 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
     // utils
     esc_path = bash_quote(xset_get_s("editor"));
     buf.append(fmt::format("fm_editor={}\n", esc_path));
-    g_free(esc_path);
     buf.append(fmt::format("fm_editor_terminal=\"{}\"\n", xset_get_b("editor") ? 1 : 0));
 
     // set
@@ -4421,7 +4407,6 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
         }
         esc_path = bash_quote(path);
         buf.append(fmt::format("fm_cmd_dir={}\n", esc_path));
-        g_free(esc_path);
         g_free(path);
 
         // cmd_data
@@ -4434,7 +4419,6 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
             path = g_build_filename(xset_get_config_dir(), "plugin-data", set->name, nullptr);
         esc_path = bash_quote(path);
         buf.append(fmt::format("fm_cmd_data={}\n", esc_path));
-        g_free(esc_path);
         g_free(path);
 
         // plugin_dir
@@ -4442,7 +4426,6 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
         {
             esc_path = bash_quote(set->plug_dir);
             buf.append(fmt::format("fm_plugin_dir={}\n", esc_path));
-            g_free(esc_path);
         }
 
         // cmd_name
@@ -4450,7 +4433,6 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
         {
             esc_path = bash_quote(set->menu_label);
             buf.append(fmt::format("fm_cmd_name={}\n", esc_path));
-            g_free(esc_path);
         }
     }
 
@@ -4466,13 +4448,10 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
         {
             esc_path = bash_quote(ptask->task->dest_dir);
             buf.append(fmt::format("fm_task_pwd={}\n", esc_path));
-            g_free(esc_path);
             esc_path = bash_quote(ptask->task->current_file);
             buf.append(fmt::format("fm_task_name={}\n", esc_path));
-            g_free(esc_path);
             esc_path = bash_quote(ptask->task->exec_command.c_str());
             buf.append(fmt::format("fm_task_command={}\n", esc_path));
-            g_free(esc_path);
             if (ptask->task->exec_as_user)
                 buf.append(fmt::format("fm_task_user=\"{}\"\n", ptask->task->exec_as_user));
             if (ptask->task->exec_icon)
@@ -4484,13 +4463,10 @@ main_write_exports(VFSFileTask* vtask, const char* value, std::string& buf)
         {
             esc_path = bash_quote(ptask->task->dest_dir);
             buf.append(fmt::format("fm_task_dest_dir={}\n", esc_path));
-            g_free(esc_path);
             esc_path = bash_quote(ptask->task->current_file);
             buf.append(fmt::format("fm_task_current_src_file={}\n", esc_path));
-            g_free(esc_path);
             esc_path = bash_quote(ptask->task->current_dest);
             buf.append(fmt::format("fm_task_current_dest_file={}\n", esc_path));
-            g_free(esc_path);
         }
         buf.append(fmt::format("fm_task_id=\"{:p}\"\n", (void*)ptask));
         if (ptask->task_view && (main_window = get_task_view_window(ptask->task_view)))
