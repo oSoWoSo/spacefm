@@ -186,6 +186,9 @@ sources = [
   'src/vfs/vfs-user-dir.cxx',
   'src/vfs/vfs-utils.cxx',
   'src/vfs/vfs-volume.cxx',
+
+  # Vendor - ztd
+  'src/vendor/ztd/ztd.cxx',
 ]
 
 # Git current commit
