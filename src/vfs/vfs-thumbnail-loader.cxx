@@ -32,6 +32,8 @@
 #include <libffmpegthumbnailer/imagetypes.h>
 #include <libffmpegthumbnailer/videothumbnailer.h>
 
+#include "vendor/ztd/ztd.hxx"
+
 #include "vfs/vfs-user-dir.hxx"
 #include "vfs/vfs-thumbnail-loader.hxx"
 

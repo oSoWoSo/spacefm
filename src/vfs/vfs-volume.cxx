@@ -2156,8 +2156,7 @@ vfs_volume_set_info(VFSVolume* volume)
     }
 
     // remove leading spaces
-    if (parameter.at(0) == ' ')
-        parameter = std::regex_replace(parameter, std::regex("^ +"), "");
+    parameter = ztd::ltrim(parameter);
 
     volume->disp_name = g_filename_display_name(parameter.c_str());
 

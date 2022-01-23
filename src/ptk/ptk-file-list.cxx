@@ -12,6 +12,8 @@
 
 #include <ctime>
 
+#include "vendor/ztd/ztd.hxx"
+
 #include "ptk/ptk-file-list.hxx"
 
 #include "vfs/vfs-thumbnail-loader.hxx"

@@ -32,7 +32,6 @@
 #include "settings.hxx"
 
 #include "logger.hxx"
-#include "utils.hxx"
 
 static bool folder_initialized = false;
 static bool daemon_initialized = false;

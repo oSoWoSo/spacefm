@@ -18,6 +18,8 @@
 #include <malloc.h>
 #endif
 
+#include "vendor/ztd/ztd.hxx"
+
 #include "vfs/vfs-volume.hxx"
 #include "vfs/vfs-thumbnail-loader.hxx"
 #include "utils.hxx"
