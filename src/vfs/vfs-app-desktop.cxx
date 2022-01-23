@@ -10,6 +10,8 @@
  *
  */
 
+#include "vendor/ztd/ztd.hxx"
+
 // sfm breaks vfs independence for exec_in_terminal
 #include "ptk/ptk-file-task.hxx"
 
@@ -84,6 +86,10 @@ vfs_app_desktop_new(const char* file_name)
         desktop->path = g_key_file_get_string(file, desktop_entry_name, "Path", nullptr);
         // clang-format on
     }
+    else
+    {
+        desktop->exec = desktop->file_name;
+    }
 
     g_key_file_free(file);
 
@@ -94,7 +100,6 @@ static void
 vfs_app_desktop_free(VFSAppDesktop* desktop)
 {
     g_free(desktop->comment);
-    g_free(desktop->exec);
     g_free(desktop->icon_name);
     g_free(desktop->path);
     g_free(desktop->full_path);
@@ -128,7 +133,7 @@ vfs_app_desktop_get_disp_name(VFSAppDesktop* desktop)
 const char*
 vfs_app_desktop_get_exec(VFSAppDesktop* desktop)
 {
-    return desktop->exec;
+    return desktop->exec.c_str();
 }
 
 const char*
@@ -164,9 +169,9 @@ vfs_app_desktop_get_icon(VFSAppDesktop* desktop, int size)
 bool
 vfs_app_desktop_open_multiple_files(VFSAppDesktop* desktop)
 {
-    if (desktop->exec)
+    if (!desktop->exec.empty())
     {
-        if (strstr(desktop->exec, "%U") || strstr(desktop->exec, "%F"))
+        if (ztd::contains(desktop->exec, "%U") || ztd::contains(desktop->exec, "%F"))
             return true;
     }
     return false;
