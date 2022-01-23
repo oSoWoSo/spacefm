@@ -11,6 +11,8 @@
 
 // #include "logger.hxx"
 
+#include "vendor/ztd/ztd.hxx"
+
 #include "vfs/vfs-user-dir.hxx"
 
 struct VFSDirXDG
@@ -84,4 +86,45 @@ const char*
 vfs_current_dir()
 {
     return g_get_current_dir();
+}
+
+// ztd::build_path vfs interface
+
+std::string
+vfs_build_path(const std::string& p1)
+{
+    return ztd::build_path(p1);
+}
+
+std::string
+vfs_build_path(const std::string& p1, const std::string& p2)
+{
+    return ztd::build_path(p1, p2);
+}
+
+std::string
+vfs_build_path(const std::string& p1, const std::string& p2, const std::string& p3)
+{
+    return ztd::build_path(p1, p2, p3);
+}
+
+std::string
+vfs_build_path(const std::string& p1, const std::string& p2, const std::string& p3,
+               const std::string& p4)
+{
+    return ztd::build_path(p1, p2, p3, p4);
+}
+
+std::string
+vfs_build_path(const std::string& p1, const std::string& p2, const std::string& p3,
+               const std::string& p4, const std::string& p5)
+{
+    return ztd::build_path(p1, p2, p3, p4, p5);
+}
+
+std::string
+vfs_build_path(const std::string& p1, const std::string& p2, const std::string& p3,
+               const std::string& p4, const std::string& p5, const std::string& p6)
+{
+    return ztd::build_path(p1, p2, p3, p4, p5, p6);
 }
