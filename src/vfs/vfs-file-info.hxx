@@ -15,6 +15,8 @@
 #include <atomic>
 #include <ctime>
 
+#include "vendor/ztd/ztd.hxx"
+
 #include "vfs/vfs-mime-type.hxx"
 
 #include <gtk/gtk.h>

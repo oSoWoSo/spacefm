@@ -20,6 +20,8 @@
 #include <fcntl.h>
 #include <utime.h>
 
+#include "vendor/ztd/ztd.hxx"
+
 #include "main-window.hxx"
 #include "vfs/vfs-volume.hxx"
 
@@ -187,7 +189,7 @@ check_overwrite(VFSFileTask* task, const char* dest_file, bool* dest_exists, cha
         if (task->overwrite_mode == VFS_FILE_TASK_OVERWRITE_ALL)
         {
             *dest_exists = !lstat(dest_file, &dest_stat);
-            if (task->current_file.compare(task->current_dest))
+            if (ztd::same(task->current_file, task->current_dest))
             {
                 // src and dest are same file - don't overwrite (truncates)
                 // occurs if user pauses task and changes overwrite mode
@@ -263,7 +265,7 @@ check_overwrite(VFSFileTask* task, const char* dest_file, bool* dest_exists, cha
                     case VFS_FILE_TASK_OVERWRITE:
                     case VFS_FILE_TASK_OVERWRITE_ALL:
                         *dest_exists = !lstat(dest_file, &dest_stat);
-                        if (task->current_file.compare(task->current_dest))
+                        if (ztd::same(task->current_file, task->current_dest))
                         {
                             // src and dest are same file - don't overwrite (truncates)
                             // occurs if user pauses task and changes overwrite mode
@@ -1337,7 +1339,7 @@ vfs_file_task_exec(char* src_file, VFSFileTask* task)
     // need su?
     if (!task->exec_as_user.empty())
     {
-        if (geteuid() == 0 && !task->exec_as_user.compare("root"))
+        if (geteuid() == 0 && ztd::same(task->exec_as_user, "root"))
         {
             // already root so no su
             task->exec_as_user.clear();
@@ -1465,7 +1467,7 @@ vfs_file_task_exec(char* src_file, VFSFileTask* task)
         buf.append(fmt::format("export fm_source=\"{}\"\n\n", task->exec_script));
 
         // build - trap rm
-        if (!task->exec_keep_tmp && geteuid() != 0 && !task->exec_as_user.compare("root"))
+        if (!task->exec_keep_tmp && geteuid() != 0 && ztd::same(task->exec_as_user, "root"))
         {
             // run as root command, clean up
             buf.append(fmt::format("trap \"rm -f {}; exit\" EXIT SIGINT SIGTERM SIGQUIT SIGHUP\n\n",
@@ -1480,7 +1482,7 @@ vfs_file_task_exec(char* src_file, VFSFileTask* task)
         // build - press enter to close
         if (terminal && task->exec_keep_terminal)
         {
-            if (geteuid() == 0 || !task->exec_as_user.compare("root"))
+            if (geteuid() == 0 || ztd::same(task->exec_as_user, "root"))
                 buf.append(fmt::format("\necho;read -p '[ Finished ]  Press Enter to close: '\n"));
             else
             {
@@ -1570,7 +1572,7 @@ vfs_file_task_exec(char* src_file, VFSFileTask* task)
     {
         // su
         argv[a++] = g_strdup(use_su);
-        if (task->exec_as_user.compare("root"))
+        if (ztd::not_same(task->exec_as_user, "root"))
         {
             if (strcmp(use_su, "/bin/su"))
                 argv[a++] = g_strdup("-u");
@@ -1607,7 +1609,7 @@ vfs_file_task_exec(char* src_file, VFSFileTask* task)
             argv[a++] = g_strdup_printf("%s %s %s %s %s",
                                         BASHPATH,
                                         auth,
-                                        !task->exec_as_user.compare("root") ? "root" : "",
+                                        ztd::same(task->exec_as_user, "root") ? "root" : "",
                                         task->exec_script.c_str(),
                                         sum_script);
             g_free(auth);
@@ -1616,7 +1618,7 @@ vfs_file_task_exec(char* src_file, VFSFileTask* task)
         {
             argv[a++] = g_strdup(BASHPATH);
             argv[a++] = auth;
-            if (!task->exec_as_user.compare("root"))
+            if (ztd::same(task->exec_as_user, "root"))
                 argv[a++] = g_strdup("root");
             argv[a++] = g_strdup(task->exec_script.c_str());
             argv[a++] = g_strdup(sum_script);

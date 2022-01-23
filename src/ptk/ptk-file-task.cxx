@@ -12,6 +12,8 @@
 
 #include <sys/wait.h>
 
+#include "vendor/ztd/ztd.hxx"
+
 #include "main-window.hxx"
 #include "utils.hxx"
 #include "logger.hxx"
@@ -1934,7 +1936,7 @@ query_overwrite(PtkFileTask* ptask)
     else
         from_disp = "Copying from directory:";
 
-    different_files = (0 != ptask->task->current_file.compare(ptask->task->current_dest));
+    different_files = (ztd::not_same(ptask->task->current_file, ptask->task->current_dest));
 
     lstat(ptask->task->current_file.c_str(), &src_stat);
     lstat(ptask->task->current_dest.c_str(), &dest_stat);
