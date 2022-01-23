@@ -14,6 +14,8 @@
 
 #include <exo/exo.h>
 
+#include "vendor/ztd/ztd.hxx"
+
 #include "ptk/ptk-utils.hxx"
 #include "ptk/ptk-file-misc.hxx"
 
@@ -580,9 +582,9 @@ on_address_bar_activate(GtkWidget* entry, PtkFileBrowser* file_browser)
         // clean double slashes
         while (strstr(final_path, "//"))
         {
-            str = final_path;
-            final_path = replace_string(str, "//", "/", false);
-            g_free(str);
+            std::string str2 = final_path;
+            str2 = ztd::replace(str2, "//", "/");
+            final_path = const_cast<char*>(str2.c_str());
         }
         if (std::filesystem::is_directory(final_path))
         {
@@ -625,7 +627,6 @@ on_address_bar_activate(GtkWidget* entry, PtkFileBrowser* file_browser)
             edata->seek_timer = 0;
         }
     }
-    g_free(final_path);
 }
 
 void
