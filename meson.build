@@ -187,6 +187,9 @@ sources = [
   'src/vfs/vfs-utils.cxx',
   'src/vfs/vfs-volume.cxx',
 
+  # Vendor - alphanum
+  'src/vendor/alphanum/alphanum.cxx',
+
   # Vendor - ztd
   'src/vendor/ztd/ztd.cxx',
 ]
