@@ -1,0 +1,39 @@
+name: build
+
+on:
+  push:
+    branches: void
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "checkout"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.client_payload.ref }}
+
+      - name: "Ubuntu update"
+        run: |
+          sudo apt-get update
+
+      - name: "Cache dependencies"
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: build-essential cmake meson ninja-build pkg-config gcc-13 g++-13 libgtest-dev libspdlog-dev wget git
+          version: 1.0
+
+      - name: "build"
+        run: |
+          git submodule update --init --recursive
+          mkdir build
+          meson setup --buildtype=release build
+          ninja -C build
