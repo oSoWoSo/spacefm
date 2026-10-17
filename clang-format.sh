@@ -1,3 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-find src/ -iname '*.cxx' -o -iname '*.hxx' | xargs clang-format -i
+find \
+    ./src \
+    ./tools \
+    ./tests \
+    -iname '*.cxx' -o -iname '*.hxx' | \
+    clang-format -i --files=/dev/stdin

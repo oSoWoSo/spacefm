@@ -1,0 +1,85 @@
+/**
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <chrono>
+#include <filesystem>
+#include <memory>
+#include <optional>
+#include <system_error>
+
+#include <ztd/ztd.hxx>
+
+// trash directories. There might be several on a system:
+//
+// One in $XDG_DATA_HOME/Trash or ~/.local/share/Trash
+// if $XDG_DATA_HOME is not set
+//
+// Every mountpoint will get a trash directory at $TOPLEVEL/.Trash-$UID.
+namespace vfs
+{
+// This class implements some of the XDG Trash specification:
+//
+// https://specifications.freedesktop.org/trash/1.0/
+
+struct trashinfo final
+{
+    std::filesystem::path path;
+    std::chrono::system_clock::time_point time;
+};
+
+std::error_code trashinfo_write(const std::filesystem::path& path, const trashinfo& info) noexcept;
+std::optional<trashinfo> trashinfo_read(const std::filesystem::path& infopath) noexcept;
+
+class trash_can
+{
+  private:
+    explicit trash_can(const std::filesystem::path& path) noexcept;
+
+  public:
+    [[nodiscard]] static std::shared_ptr<vfs::trash_can>
+    create(const std::filesystem::path& path) noexcept;
+
+    // Move a file or directory into the trash.
+    [[nodiscard]] static bool trash(const std::filesystem::path& path) noexcept;
+
+    // Restore a file or directory from the trash to its original location.
+    // Currently a NOOP
+    [[nodiscard]] static bool restore(const std::filesystem::path& path) noexcept;
+
+    // Empty a trash can
+    // Currently a NOOP
+    static void empty(const std::filesystem::path& path) noexcept;
+
+    [[nodiscard]] std::filesystem::path
+    unique_filename(const std::filesystem::path& path) const noexcept;
+    void create_trash_dir() const noexcept;
+    void create_trash_info(const std::filesystem::path& path,
+                           const std::filesystem::path& target_filename) const noexcept;
+    void move(const std::filesystem::path& path,
+              const std::filesystem::path& target_filename) const noexcept;
+
+    [[nodiscard]] bool is_trash_dir(const std::filesystem::path& path) const noexcept;
+
+  private:
+    [[nodiscard]] static u64 mount_id(const std::filesystem::path& path) noexcept;
+    [[nodiscard]] static std::filesystem::path toplevel(const std::filesystem::path& path) noexcept;
+
+    std::filesystem::path trash_path_;
+    std::filesystem::path files_path_;
+    std::filesystem::path info_path_;
+};
+} // namespace vfs

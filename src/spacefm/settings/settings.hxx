@@ -1,0 +1,307 @@
+/**
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <flat_map>
+#include <optional>
+#include <string>
+#include <vector>
+
+#include <cstdint>
+
+#include <sigc++/sigc++.h>
+
+#include "vfs/user-dirs.hxx"
+
+namespace config
+{
+enum class panel_id : std::uint8_t
+{
+    panel_1,
+    panel_2,
+    panel_3,
+    panel_4,
+};
+
+enum class view_mode : std::uint8_t
+{
+    grid,
+    list,
+    compact,
+};
+
+enum class sort_by : std::uint8_t
+{
+    name,
+    size,
+    bytes,
+    type,
+    mime,
+    perm,
+    owner,
+    group,
+    atime,
+    btime,
+    ctime,
+    mtime,
+};
+
+enum class sort_type : std::uint8_t
+{
+    ascending,
+    descending,
+};
+
+enum class sort_dir : std::uint8_t
+{
+    first,
+    mixed,
+    last,
+};
+
+enum class sort_hidden : std::uint8_t
+{
+    first,
+    last,
+};
+
+enum class icon_size : std::uint8_t
+{
+    xxx_small = 22,
+    xx_small = 24,
+    x_small = 32,
+    small = 36,
+    normal = 48,
+    large = 64,
+    x_large = 72,
+    xx_large = 96,
+    xxx_large = 128,
+};
+
+struct sorting final
+{
+    bool show_hidden = true;
+    bool sort_natural = true;
+    bool sort_case = false;
+    sort_by sort_by = sort_by::name;
+    sort_dir sort_dir = sort_dir::first;
+    sort_type sort_type = sort_type::ascending;
+    sort_hidden sort_hidden = sort_hidden::first;
+};
+
+struct grid_state final
+{
+    icon_size icon_size = icon_size::normal;
+    bool thumbnails = true;
+};
+
+struct list_state final
+{
+    icon_size icon_size = icon_size::small;
+    bool compact = false;
+    // Visible Columns
+    bool name = true;
+    bool size = true;
+    bool bytes = false;
+    bool type = false;
+    bool mime = false;
+    bool perm = false;
+    bool owner = false;
+    bool group = false;
+    bool atime = false;
+    bool btime = false;
+    bool ctime = false;
+    bool mtime = true;
+};
+
+struct tab_state final
+{
+    std::filesystem::path path = vfs::user::home();
+    sorting sorting{};
+    view_mode view = view_mode::grid;
+    std::optional<grid_state> grid = std::nullopt; // only used for view_mode::grid
+    std::optional<list_state> list = std::nullopt; // only used for view_mode::list
+};
+
+struct panel_state final
+{
+    bool is_visible = true;
+    std::int32_t active_tab = 0;
+    std::vector<tab_state> tabs;
+};
+
+struct window_state final
+{
+    std::flat_map<panel_id, panel_state> panels = {
+        {panel_id::panel_1,
+         {.is_visible = true,
+          .active_tab = 0,
+          .tabs = {{
+              .path = vfs::user::home(),
+          }}}},
+        {panel_id::panel_2,
+         {.is_visible = false,
+          .active_tab = 0,
+          .tabs = {{
+              .path = vfs::user::home(),
+          }}}},
+        {panel_id::panel_3,
+         {.is_visible = false,
+          .active_tab = 0,
+          .tabs = {{
+              .path = vfs::user::home(),
+          }}}},
+        {panel_id::panel_4,
+         {.is_visible = false,
+          .active_tab = 0,
+          .tabs = {{
+              .path = vfs::user::home(),
+          }}}},
+    };
+};
+
+struct settings_on_disk
+{
+    struct general final
+    {
+        bool click_executes{false};
+        bool single_click_executes{false};
+        bool single_click_activate{false};
+
+        bool confirm{true};
+        bool confirm_delete{true};
+        bool confirm_trash{true};
+
+        bool auto_open_mounted_volumes{true};
+
+        bool load_saved_tabs{true};
+
+        bool use_si_prefix{false};
+    };
+    general general;
+
+    struct interface final
+    {
+        bool show_sidebar{true};
+        std::int32_t sidebar_width{200};
+        // bool sidebar_show_home{true}; // should always show
+        bool sidebar_show_advanced{false};
+        bool sidebar_show_desktop{true};
+        bool sidebar_show_documents{true};
+        bool sidebar_show_download{true};
+        bool sidebar_show_music{true};
+        bool sidebar_show_pictures{true};
+        bool sidebar_show_videos{true};
+
+        bool always_show_tabs{true};
+        bool show_tab_close_button{false};
+        bool new_tab_here{true};
+
+        bool show_toolbar_home{true};
+        bool show_toolbar_refresh{true};
+        bool show_toolbar_search{true};
+
+        std::string window_title{"%d"};
+    };
+    interface interface;
+
+    struct behavior final
+    {
+        bool switch_to_new_tabs{true};
+        bool switch_to_restored_tabs{true};
+    };
+    behavior behavior;
+
+    struct dialog final
+    {
+        struct create final
+        {
+            bool filename{false};
+            bool parent{false};
+            bool path{false};
+            bool target{false};
+            bool confirm{false};
+        };
+        create create;
+
+        struct rename final
+        {
+            bool copy{true};
+            bool copyt{false};
+            bool filename{true};
+            bool link{false};
+            bool linkt{false};
+            bool parent{false};
+            bool path{true};
+            bool target{false};
+            bool type{false};
+            bool confirm{true};
+        };
+        rename rename;
+
+        struct properties final
+        {
+            bool hash_md5{true};
+            bool hash_sha1{true};
+            bool hash_sha256{true};
+            bool hash_sha512{true};
+            bool hash_sha_3_256{false};
+            bool hash_sha_3_512{false};
+            bool hash_blake2b_256{false};
+            bool hash_blake2b_512{false};
+            bool hash_whirlpool{false};
+            bool hash_crc32{false};
+        };
+        properties properties;
+    };
+    dialog dialog;
+
+    struct defaults
+    {
+        sorting sorting;
+        view_mode view = view_mode::grid;
+        grid_state grid;
+        list_state list;
+    };
+    defaults defaults;
+
+    std::flat_map<std::uint32_t, window_state> windows = {
+        {0, {}},
+    };
+};
+
+// TODO use getters and setters for settings?
+// TODO use Glib::Property to notify on a setting change?
+struct settings final : public settings_on_disk
+{
+  public:
+    [[nodiscard]] auto
+    signal_autosave_request() noexcept
+    {
+        return signal_autosave_request_;
+    }
+
+    [[nodiscard]] auto
+    signal_autosave_cancel() noexcept
+    {
+        return signal_autosave_cancel_;
+    }
+
+  private:
+    sigc::signal<void()> signal_autosave_request_;
+    sigc::signal<void()> signal_autosave_cancel_;
+};
+} // namespace config

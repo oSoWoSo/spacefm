@@ -1,0 +1,622 @@
+/**
+ * Copyright (C) 2013-2015 IgnorantGuru <ignorantguru@gmx.com>
+ * Copyright (C) 2007 Hong Jen Yee (PCMan) <pcman.tw@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/*
+ * This file handles default applications for MIME types.  For changes it
+ * makes to mimeapps.list, it is fully compliant with Freedeskop's:
+ *   Association between MIME types and applications 1.0.1
+ *   http://standards.freedesktop.org/mime-apps-spec/mime-apps-spec-latest.html
+ *
+ * However, for reading the hierarchy and determining default and associated
+ * applications, it uses a best-guess algorithm for better performance and
+ * compatibility with older systems, and is NOT fully spec compliant.
+ */
+
+#include <algorithm>
+#include <array>
+#include <filesystem>
+#include <format>
+#include <optional>
+#include <ranges>
+#include <string>
+#include <string_view>
+#include <vector>
+
+#include <cassert>
+
+#include <glibmm.h>
+#include <gtkmm.h>
+
+#include <ztd/ztd.hxx>
+
+#include "vfs/execute.hxx"
+#include "vfs/user-dirs.hxx"
+
+#include "vfs/mime-type/mime-action.hxx"
+#include "vfs/utils/file-ops.hxx"
+
+static void
+update_desktop_database() noexcept
+{
+    vfs::execute::command_line_async("update-desktop-database {}",
+                                     vfs::user::data() / "applications");
+}
+
+/* Determine removed associations for this type */
+static void
+remove_actions(std::string_view mime_type, std::vector<std::string>& actions) noexcept
+{
+    // logger::info<logger::vfs>("remove_actions( {} )", type);
+
+    const auto kf = Glib::KeyFile::create();
+    try
+    {
+        // $XDG_CONFIG_HOME=[~/.config]/mimeapps.list
+        const auto path = vfs::user::config() / "mimeapps.list";
+
+        kf->load_from_file(path, Glib::KeyFile::Flags::NONE);
+    }
+    catch (const Glib::FileError& e)
+    {
+        try
+        {
+            // $XDG_DATA_HOME=[~/.local]/share/applications/mimeapps.list
+            const auto path = vfs::user::data() / "applications/mimeapps.list";
+
+            kf->load_from_file(path, Glib::KeyFile::Flags::NONE);
+        }
+        catch (const Glib::FileError& e)
+        {
+            return;
+        }
+    }
+
+    std::vector<Glib::ustring> removed;
+    try
+    {
+        removed = kf->get_string_list("Removed Associations", mime_type.data());
+        if (removed.empty())
+        {
+            return;
+        }
+    }
+    catch (...) // Glib::KeyFileError, Glib::FileError
+    {
+        return;
+    }
+
+    for (auto& r : removed)
+    {
+        const std::string rem = r;
+        if (std::ranges::contains(actions, rem))
+        {
+            std::erase_if(actions, [&](const auto& a) { return a == rem; });
+            // logger::info<logger::vfs>("        ACTION-REMOVED {}", rem);
+        }
+    }
+}
+
+/*
+ * Get applications associated with this mime-type
+ *
+ * This is very roughly based on specs:
+ * http://standards.freedesktop.org/mime-apps-spec/mime-apps-spec-latest.html
+ *
+ */
+static void
+get_actions(const std::filesystem::path& dir, std::string_view mime_type,
+            std::vector<std::string>& actions) noexcept
+{
+    // logger::info<logger::vfs>("get_actions( {}, {} )\n", dir, mime_type);
+    std::vector<Glib::ustring> removed;
+
+    static constexpr std::array<std::string_view, 2> names{
+        "mimeapps.list",
+        "mimeinfo.cache",
+    };
+    static constexpr std::array<std::string_view, 3> groups{
+        "Default Applications",
+        "Added Associations",
+        "MIME Cache",
+    };
+
+    // logger::info<logger::vfs>("get_actions( {}/, {} )", dir, mime_type);
+    for (const auto n : std::views::iota(0uz, names.size()))
+    {
+        const auto path = dir / names.at(n);
+        // logger::info<logger::vfs>( "    {}", path);
+        const auto kf = Glib::KeyFile::create();
+        try
+        {
+            kf->load_from_file(path, Glib::KeyFile::Flags::NONE);
+        }
+        catch (const Glib::FileError& e)
+        {
+            continue;
+        }
+
+        if (n == 0)
+        {
+            // get removed associations in this dir
+            try
+            {
+                removed = kf->get_string_list("Removed Associations", mime_type.data());
+                // if (removed.empty())
+                //     continue;
+            }
+            catch (...) // Glib::KeyFileError, Glib::FileError
+            {
+                continue;
+            }
+        }
+
+        // mimeinfo.cache has only MIME Cache; others do not have it
+        for (std::int32_t k = (n == 0 ? 0 : 2); k < (n == 0 ? 2 : 3); ++k)
+        {
+            // logger::info<logger::vfs>("        {} [{}]", groups[k], k);
+            bool is_removed = false;
+            std::vector<Glib::ustring> apps;
+            try
+            {
+                apps = kf->get_string_list(groups.at(static_cast<std::size_t>(k)).data(),
+                                           mime_type.data());
+                // if (apps.empty())
+                //     return nullptr;
+            }
+            catch (...) // Glib::KeyFileError, Glib::FileError
+            {
+                continue;
+            }
+            for (auto& a : apps)
+            {
+                //  logger::info<logger::vfs>("            {}", apps[i]);
+                //  check if removed
+                is_removed = false;
+                if (!removed.empty() && n > 0)
+                {
+                    for (auto& r : removed)
+                    {
+                        if (r == a)
+                        {
+                            // logger::info<logger::vfs>("                REMOVED");
+                            is_removed = true;
+                            break;
+                        }
+                    }
+                }
+                const std::string app = a;
+                if (!is_removed && !std::ranges::contains(actions, app))
+                {
+                    /* check for app existence */
+                    if (vfs::detail::mime_type::locate_desktop_file(app))
+                    {
+                        // logger::info<logger::vfs>("                EXISTS");
+                        actions.push_back(app);
+                    }
+                    else
+                    {
+                        // logger::info<logger::vfs>("                MISSING");
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * @brief Move
+ *
+ * - Move vector element to new position
+ *
+ * @param[in,out] v The std::vector<T> to be rearranged
+ * @param[in] old_index The index being moved
+ * @param[in] new_index The index to move to
+ */
+template<typename T>
+static void
+move(std::vector<T>& v, const std::size_t old_index, const std::size_t new_index) noexcept
+{
+    if (old_index == new_index || old_index >= v.size() || new_index >= v.size())
+    {
+        return;
+    }
+
+    using diff_t = std::vector<T>::difference_type;
+
+    if (old_index < new_index)
+    {
+        std::rotate(v.begin() + static_cast<diff_t>(old_index),
+                    v.begin() + static_cast<diff_t>(old_index) + 1,
+                    v.begin() + static_cast<diff_t>(new_index) + 1);
+    }
+    else
+    {
+        std::rotate(v.begin() + static_cast<diff_t>(new_index),
+                    v.begin() + static_cast<diff_t>(old_index),
+                    v.begin() + static_cast<diff_t>(old_index) + 1);
+    }
+}
+
+std::vector<std::string>
+vfs::detail::mime_type::get_actions(std::string_view mime_type) noexcept
+{
+    std::vector<std::string> actions;
+
+    /* FIXME: actions of parent types should be added, too. */
+
+    /* get all actions for this file type */
+
+    // $XDG_CONFIG_HOME=[~/.config]/mimeapps.list
+    ::get_actions(vfs::user::config(), mime_type, actions);
+
+    // $XDG_DATA_HOME=[~/.local]/share/applications/mimeapps.list
+    const auto dir = vfs::user::data() / "applications";
+    ::get_actions(dir, mime_type, actions);
+
+    // $XDG_DATA_DIRS=[/usr/[local/]share]/applications/mimeapps.list
+    for (const std::filesystem::path sys_dir : Glib::get_system_data_dirs())
+    {
+        const auto sdir = sys_dir / "applications";
+        ::get_actions(sdir, mime_type, actions);
+    }
+
+    /* remove actions for this file type */
+    remove_actions(mime_type, actions);
+
+    /* ensure default app is in the list */
+    const auto default_app = get_default_action(mime_type);
+    if (default_app)
+    {
+        if (!std::ranges::contains(actions, default_app.value()))
+        {
+            // default app is not in the list, add it!
+            actions.push_back(default_app.value());
+        }
+        else /* default app is in the list, move it to the first. */
+        {
+            const auto it = std::ranges::find(actions, default_app.value());
+            const auto index = std::ranges::distance(actions.cbegin(), it);
+            if (index != 0)
+            {
+                move(actions, static_cast<std::size_t>(index), 0);
+            }
+        }
+    }
+    return actions;
+}
+
+/*
+ * NOTE:
+ * This API is very time consuming, but unfortunately, due to the damn poor design of
+ * Freedesktop.org spec, all the insane checks here are necessary.  Sigh...  :-(
+ *
+ * Check if an applications currently set to open this mime-type
+ * desktop_id is the name of *.desktop file.
+ */
+[[nodiscard]] static bool
+mime_type_has_action(std::string_view type, std::string_view desktop_id) noexcept
+{
+    Glib::ustring cmd;
+    Glib::ustring name;
+
+    bool found = false;
+    const bool is_desktop = desktop_id.ends_with(".desktop");
+
+    if (is_desktop)
+    {
+        const auto filename = vfs::detail::mime_type::locate_desktop_file(desktop_id);
+        if (!filename)
+        {
+            return false;
+        }
+
+        const auto kf = Glib::KeyFile::create();
+        try
+        {
+            kf->load_from_file(filename.value(), Glib::KeyFile::Flags::NONE);
+        }
+        catch (const Glib::FileError& e)
+        {
+            return false;
+        }
+
+        std::vector<Glib::ustring> types;
+        try
+        {
+            types = kf->get_string_list("Desktop Entry", "MimeType");
+            if (types.empty())
+            {
+                return false;
+            }
+        }
+        catch (...) // Glib::KeyFileError, Glib::FileError
+        {
+            return false;
+        }
+
+        for (const Glib::ustring& known_type : types)
+        {
+            if (known_type.data() == type)
+            {
+                // our mime-type is already found in the desktop file.
+                // no further check is needed
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) /* get the content of desktop file for comparison */
+        {
+            cmd = kf->get_string("Desktop Entry", "Exec");
+            name = kf->get_string("Desktop Entry", "Name");
+        }
+    }
+    else
+    {
+        cmd = desktop_id.data();
+    }
+
+    const std::vector<std::string> actions = vfs::detail::mime_type::get_actions(type);
+    if (actions.empty())
+    {
+        return found;
+    }
+
+    for (std::string_view action : actions)
+    {
+        /* Try to match directly by desktop_id first */
+        if (is_desktop && action == desktop_id)
+        {
+            found = true;
+            break;
+        }
+        else /* Then, try to match by "Exec" and "Name" keys */
+        {
+            const auto filename = vfs::detail::mime_type::locate_desktop_file(action);
+            if (!filename)
+            {
+                return false;
+            }
+
+            const auto kf = Glib::KeyFile::create();
+            try
+            {
+                kf->load_from_file(filename.value(), Glib::KeyFile::Flags::NONE);
+            }
+            catch (const Glib::FileError& e)
+            {
+                return false;
+            }
+
+            const Glib::ustring cmd2 = kf->get_string("Desktop Entry", "Exec");
+            if (cmd == cmd2) /* 2 desktop files have same "Exec" */
+            {
+                if (is_desktop)
+                {
+                    const Glib::ustring name2 = kf->get_string("Desktop Entry", "Name");
+                    /* Then, check if the "Name" keys of 2 desktop files are the same. */
+                    if (name == name2)
+                    {
+                        /* Both "Exec" and "Name" keys of the 2 desktop files are
+                         *  totally the same. So, despite having different desktop id
+                         *  They actually refer to the same application. */
+                        found = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    found = true;
+                    break;
+                }
+            }
+        }
+    }
+    return found;
+}
+
+[[nodiscard]] static std::string
+make_custom_desktop_file(std::string_view desktop_id, std::string_view mime_type) noexcept
+{
+    std::string cust_template;
+    Glib::ustring file_content;
+
+    static constexpr std::string_view desktop_ext{".desktop"};
+    static constexpr std::string_view replace_txt{"<REPLACE_TXT>"};
+
+    if (desktop_id.ends_with(desktop_ext))
+    {
+        const auto filename = vfs::detail::mime_type::locate_desktop_file(desktop_id);
+        if (!filename)
+        {
+            return "";
+        }
+
+        const auto kf = Glib::KeyFile::create();
+        try
+        {
+            kf->load_from_file(filename.value(), Glib::KeyFile::Flags::KEEP_TRANSLATIONS);
+        }
+        catch (const Glib::FileError& e)
+        {
+            return "";
+        }
+
+        // FIXME: If the source desktop_id refers to a custom desktop file, and
+        //  value of the MimeType key equals to our mime-type, there is no
+        //  need to generate a new desktop file.
+        //
+        //  if(is_custom_desktop_file(desktop_id))
+        //
+
+        const std::vector<Glib::ustring> mime_types{mime_type.data()};
+
+        /* set our mime-type */
+        kf->set_string_list("Desktop Entry", "MimeType", mime_types);
+        /* store id of original desktop file, for future use. */
+        kf->set_string("Desktop Entry", "X-MimeType-Derived", desktop_id.data());
+        kf->set_string("Desktop Entry", "NoDisplay", "true");
+
+        const std::string name = ztd::remove_suffix(desktop_id, desktop_ext);
+        cust_template = std::format("{}-usercustom-{}.desktop", name, replace_txt);
+
+        file_content = kf->to_data();
+    }
+    else /* it is not a desktop_id, but a command */
+    {
+        /* Make a user-created desktop file for the command */
+        const auto name = std::filesystem::path(desktop_id).filename();
+        cust_template = std::format("{}-usercreated-{}.desktop", name, replace_txt);
+
+        file_content = std::format("[Desktop Entry]\n"
+                                   "Type=Application\n"
+                                   "Name={}\n"
+                                   "Exec={}\n"
+                                   "MimeType={}\n"
+                                   "Icon=exec\n"
+                                   "Terminal=false\n"
+                                   "NoDisplay=true\n",
+                                   name,
+                                   desktop_id,
+                                   mime_type);
+    }
+
+    /* generate unique file name */
+    const auto dir = vfs::user::data() / "applications";
+    std::filesystem::create_directories(dir);
+    std::filesystem::permissions(dir, std::filesystem::perms::owner_all);
+    std::string cust;
+
+    for (std::int32_t i = 0;; ++i)
+    {
+        /* generate the basename */
+        cust = ztd::replace(cust_template, replace_txt, std::format("{}", i));
+        /* test if the filename already exists */
+        const auto path = dir / cust;
+        if (!std::filesystem::exists(path))
+        { /* this generated filename can be used */
+            [[maybe_unused]] auto ec = vfs::utils::write_file(path, file_content.raw());
+            break;
+        }
+    }
+
+    /* execute update-desktop-database" to update mimeinfo.cache */
+    update_desktop_database();
+
+    return cust;
+}
+
+/*
+ * Add an applications used to open this mime-type
+ * desktop_id is the name of *.desktop file.
+ *
+ * custom_desktop: used to store name of the newly created user-custom desktop file, can be nullptr.
+ */
+std::string
+vfs::detail::mime_type::add_action(std::string_view type, std::string_view desktop_id) noexcept
+{
+    if (mime_type_has_action(type, desktop_id))
+    {
+        return desktop_id.data();
+    }
+    return make_custom_desktop_file(desktop_id, type);
+}
+
+[[nodiscard]] static std::optional<std::filesystem::path>
+locate_desktop_file(const std::filesystem::path& dir, std::string_view desktop_id) noexcept
+{
+    auto desktop_path = dir / "applications" / desktop_id;
+    if (std::filesystem::is_regular_file(desktop_path))
+    {
+        return desktop_path;
+    }
+
+    // logger::info<logger::vfs>("desktop_id={}", desktop_id);
+
+    // mime encodes directory separators as '-'.
+    // so the desktop_id 'mime-mime-mime.desktop' could be on-disk
+    // mime-mime-mime.desktop, mime/mime-mime.desktop, or mime/mime/mime.desktop.
+    // not supported is mime-mime/mime.desktop
+    std::string new_desktop_id = desktop_id.data();
+    while (new_desktop_id.contains('-'))
+    {
+        new_desktop_id = ztd::replace(new_desktop_id, "-", "/", 1);
+        auto new_desktop_path = dir / "applications" / new_desktop_id;
+        // logger::info<logger::vfs>("new_desktop_id={}", new_desktop_id);
+        if (std::filesystem::is_regular_file(new_desktop_path))
+        {
+            return new_desktop_path;
+        }
+    }
+
+    return std::nullopt;
+}
+
+std::optional<std::filesystem::path>
+vfs::detail::mime_type::locate_desktop_file(const std::filesystem::path& dir,
+                                            std::string_view desktop_id) noexcept
+{
+    return ::locate_desktop_file(dir, desktop_id);
+}
+
+std::optional<std::filesystem::path>
+vfs::detail::mime_type::locate_desktop_file(std::string_view desktop_id) noexcept
+{
+    const auto data_dir = vfs::user::data();
+
+    auto data_desktop = ::locate_desktop_file(data_dir, desktop_id);
+    if (data_desktop)
+    {
+        return data_desktop;
+    }
+
+    for (const std::filesystem::path sys_dir : Glib::get_system_data_dirs())
+    {
+        auto sys_desktop = ::locate_desktop_file(sys_dir, desktop_id);
+        if (sys_desktop)
+        {
+            return sys_desktop;
+        }
+    }
+
+    return std::nullopt;
+}
+
+std::optional<std::string>
+vfs::detail::mime_type::get_default_action(std::string_view mime_type) noexcept
+{
+    assert(mime_type.empty() != true);
+
+    const auto result = vfs::execute::command_line_sync("xdg-mime query default {}", mime_type);
+    if (result.standard_output.empty())
+    {
+        return std::nullopt;
+    }
+    // Need to remove '\n'
+    return ztd::strip(result.standard_output);
+}
+
+void
+vfs::detail::mime_type::set_default_action(std::string_view mime_type,
+                                           std::string_view desktop_id) noexcept
+{
+    assert(mime_type.empty() != true);
+    assert(desktop_id.empty() != true);
+
+    vfs::execute::command_line_async("xdg-mime default {} {}", desktop_id, mime_type);
+}

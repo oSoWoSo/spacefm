@@ -1,4 +1,0 @@
-# misc features
-option('deprecated', type : 'boolean', value: false, description : 'enable deprecated features')
-option('deprecated-ini-loading', type : 'boolean', value: false, description : 'support for reading old session files')
-option('nonlatin', type : 'boolean', value: false, description : 'support for non-latin keyboards')

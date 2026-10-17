@@ -1,0 +1,205 @@
+/**
+ * Copyright (C) 2006 Hong Jen Yee (PCMan) <pcman.tw@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <atomic>
+#include <chrono>
+#include <filesystem>
+#include <memory>
+#include <mutex>
+#include <shared_mutex>
+#include <span>
+#include <stop_token>
+#include <thread>
+#include <unordered_set>
+#include <vector>
+
+#include <glibmm.h>
+#include <gtkmm.h>
+#include <sigc++/sigc++.h>
+
+#include <ztd/ztd.hxx>
+
+#include "vfs/file.hxx"
+
+#include "vfs/thumbnails/manager.hxx"
+
+#include "notify-cpp/controller.hxx"
+
+namespace vfs
+{
+class dir : public std::enable_shared_from_this<dir>
+{
+  private:
+    dir() = delete;
+    explicit dir(const std::filesystem::path& path) noexcept;
+    ~dir() noexcept;
+    dir(const dir& other) = delete;
+    dir(dir&& other) = delete;
+    dir& operator=(const dir& other) = delete;
+    dir& operator=(dir&& other) = delete;
+
+  public:
+    [[nodiscard]] static std::shared_ptr<vfs::dir> create(const std::filesystem::path& path,
+                                                          const bool permanent = false) noexcept;
+
+    [[nodiscard]] const std::filesystem::path& path() const noexcept;
+    [[nodiscard]] std::vector<std::shared_ptr<vfs::file>> files() const noexcept;
+
+    void refresh() noexcept;
+
+    [[nodiscard]] u64 hidden_files() const noexcept;
+
+    [[nodiscard]] bool avoid_changes() const noexcept;
+    void update_avoid_changes() noexcept;
+
+    [[nodiscard]] bool is_loaded() const noexcept;
+    [[nodiscard]] bool is_loading() const noexcept;
+
+    [[nodiscard]] bool is_directory_empty() const noexcept;
+
+    [[nodiscard]] bool add_hidden(const std::shared_ptr<vfs::file>& file) noexcept;
+    [[nodiscard]] bool add_hidden(std::span<const std::shared_ptr<vfs::file>> files) noexcept;
+
+    void load_thumbnails(const std::int32_t size) noexcept;
+    void load_thumbnail(const std::shared_ptr<vfs::file>& file, const std::int32_t size) noexcept;
+    void unload_thumbnails(const std::int32_t size) noexcept;
+    void enable_thumbnails(const bool enabled) noexcept;
+
+  private:
+    void load_thread(std::stop_token stoken) noexcept;
+    void refresh_thread(std::stop_token stoken) noexcept;
+
+    // note, must have a files_mutex_ before using
+    [[nodiscard]] std::shared_ptr<vfs::file>
+    find_file(const std::filesystem::path& filename) const noexcept;
+
+    // dir .hidden file
+    [[nodiscard]] bool write_hidden() const noexcept;
+    void load_user_hidden_files() noexcept;
+    [[nodiscard]] bool is_file_user_hidden(const std::filesystem::path& path) const noexcept;
+    std::optional<std::unordered_set<std::filesystem::path>> user_hidden_files_{std::nullopt};
+
+    // handle file events
+    void on_file_created(const std::filesystem::path& path) noexcept;
+    void on_file_deleted(const std::filesystem::path& path) noexcept;
+    void on_file_changed(const std::filesystem::path& path) noexcept;
+    void on_self_deleted(const std::filesystem::path& path) noexcept;
+
+    std::filesystem::path path_;
+
+    std::vector<std::shared_ptr<vfs::file>> files_;
+    mutable std::shared_mutex files_mutex_;
+
+    std::jthread loader_thread_;
+    std::mutex loader_mutex_;
+
+    vfs::thumbnail::manager thumbnail_manager_;
+    std::jthread thumbnail_manager_thread_;
+
+    notify::controller notifier_;
+    std::jthread notifier_thread_;
+
+    bool enable_thumbnails_{true};
+    bool avoid_changes_{false};           // disable file events, for nfs mount locations.
+    std::atomic_bool load_running_{true}; // is dir loaded, initial load or refresh
+    u64 xhidden_count_;                   // filenames starting with '.' and user hidden files
+
+    // batch handling for file events
+    void notify_file_change(const std::chrono::milliseconds timeout) noexcept;
+    // file change notify
+    void update_created_files() noexcept;
+    void update_changed_files() noexcept;
+    void update_deleted_files() noexcept;
+    bool timer_running_ = false;
+    Glib::SignalTimeout timer_ = Glib::signal_timeout();
+
+    struct file_events
+    {
+        // filenames only
+
+        std::mutex deleted_mutex;
+        std::unordered_set<std::filesystem::path> deleted;
+
+        std::mutex changed_mutex;
+        std::unordered_set<std::filesystem::path> changed;
+
+        std::mutex created_mutex;
+        std::unordered_set<std::filesystem::path> created;
+    };
+    file_events events_;
+
+  public:
+    // Signals
+
+    [[nodiscard]] auto
+    signal_files_changed() noexcept
+    {
+        return signal_files_changed_;
+    }
+
+    [[nodiscard]] auto
+    signal_files_created() noexcept
+    {
+        return signal_files_created_;
+    }
+
+    [[nodiscard]] auto
+    signal_files_deleted() noexcept
+    {
+        return signal_files_deleted_;
+    }
+
+    [[nodiscard]] auto
+    signal_directory_loaded() noexcept
+    {
+        return signal_directory_loaded_;
+    }
+
+    [[nodiscard]] auto
+    signal_directory_refresh() noexcept
+    {
+        return signal_directory_refresh_;
+    }
+
+    [[nodiscard]] auto
+    signal_thumbnail_loaded() noexcept
+    {
+        return signal_thumbnail_loaded_;
+    }
+
+    /**
+     * The directory this vfs::dir was created for has been deleted
+     */
+    [[nodiscard]] auto
+    signal_directory_deleted() noexcept
+    {
+        return signal_directory_deleted_;
+    }
+
+  private:
+    // Signals
+    sigc::signal<void(std::vector<std::shared_ptr<vfs::file>>)> signal_files_created_;
+    sigc::signal<void(std::vector<std::shared_ptr<vfs::file>>)> signal_files_changed_;
+    sigc::signal<void(std::vector<std::shared_ptr<vfs::file>>)> signal_files_deleted_;
+    sigc::signal<void()> signal_directory_loaded_;
+    sigc::signal<void()> signal_directory_refresh_;
+    sigc::signal<void(const std::shared_ptr<vfs::file>&)> signal_thumbnail_loaded_;
+    sigc::signal<void()> signal_directory_deleted_;
+};
+} // namespace vfs

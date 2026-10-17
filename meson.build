@@ -1,38 +1,39 @@
 project(
-    'spacefm', ['c', 'cpp'],
-    version : '3.0.0-dev',
-    license : 'GPL3',
-    default_options : [
-        'cpp_std=c++20',
-        'buildtype=debug',
+    'spacefm',
+    ['c', 'cpp'],
+    version: '4.0.0-dev',
+    license: 'GPL3',
+    default_options: [
+        'c_std=c23',
+        'cpp_std=c++26',
+        # 'cpp_debugstl=true',
+        # 'cpp_importstd=true',
+        'buildtype=debugoptimized',
         'warning_level=3',
         'optimization=2',
         'prefix=/usr',
         'sysconfdir=/etc',
     ],
-    meson_version : '>= 1.0.0'
+    meson_version: '>= 1.7.0',
 )
 
-bash = find_program('bash', required : true)
-fish = find_program('fish', required : true)
-python = find_program('python3', required : true)
+bash = find_program('bash', required: true)
+python = find_program('python3', required: true)
 
 build_root = meson.project_build_root()
 source_root = meson.project_source_root()
 
-incdir = include_directories('src')
-
 package = meson.project_name()
 version = meson.project_version()
 prefix = get_option('prefix')
-bindir = join_paths(prefix, get_option('bindir'))
-datadir = join_paths(prefix, get_option('datadir'))
-libdir = join_paths(prefix, get_option('libdir'), package)
+bindir = prefix / get_option('bindir')
+datadir = prefix / get_option('datadir')
+libdir = prefix / get_option('libdir') / package
 sysconfdir = get_option('sysconfdir')
-localedir = join_paths(prefix, get_option('localedir'))
-mandir = join_paths(prefix, get_option('mandir'))
+localedir = prefix / get_option('localedir')
+mandir = prefix / get_option('mandir')
 
-## compiler stuff
+## Compiler stuff
 
 cc = meson.get_compiler('c')
 cpp = meson.get_compiler('cpp')
@@ -40,53 +41,120 @@ cpp = meson.get_compiler('cpp')
 # message(cc.get_id())
 # message(cpp.get_id())
 
-flags = []
-link_flags = []
+flags = [
+    # modules still dont work
+    # '-fmodules',
+    # '--compile-std-module',
 
-debug_flags = [
-    '-ggdb3',
-
-    '-pedantic',
-    '-pedantic-errors',
-    # '-Wfatal-errors',
-    # '-ftime-trace',
+    '-freflection',
 ]
 
-if get_option('buildtype') == 'debug'
-    flags += cpp.get_supported_arguments(debug_flags)
-endif
+if get_option('buildtype') == 'debug' or get_option('buildtype') == 'debugoptimized'
+    flags += cpp.get_supported_arguments([
+        '-ggdb3',
+        '-pedantic',
+        '-pedantic-errors',
+        '-fno-omit-frame-pointer',
+        '-mno-omit-leaf-frame-pointer',
+        '-fasynchronous-unwind-tables',
+        # '-ftime-trace',
+        # '-fsave-optimization-record',
 
-release_flags = []
+        '-Wfatal-errors',
+
+        # '-Werror',
+        '-Werror=date-time',
+        '-Werror=unguarded-availability-new',
+    ])
+endif
 
 if get_option('buildtype') == 'release'
-    flags += cpp.get_supported_arguments(release_flags)
+    flags += cpp.get_supported_arguments([])
 endif
 
-default_warning_flags = [
-    # '-Wconversion',
+# Default
+flags += cpp.get_supported_arguments([
+    '-finput-charset=UTF-8',
+    '-fexec-charset=UTF-8',
+
+    '-fno-delete-null-pointer-checks',
+    '-fno-strict-aliasing',
+    '-fno-strict-overflow',
+
+    '-ftrivial-auto-var-init=zero',
+    '-fzero-init-padding-bits=all',
+])
+
+# Hardening
+if get_option('buildtype') != 'debug' and false
+    flags += cpp.get_supported_arguments([
+        '-Wformat=2',
+        '-Wformat-overflow=2',
+        '-Wformat-truncation',
+        '-Werror=format-security',
+
+        '-fstack-protector-strong',
+        '-fstack-clash-protection',
+        '-fcf-protection=full',
+
+        '-Wp,-U_FORTIFY_SOURCE,-D_FORTIFY_SOURCE=3',
+
+        # GCC libstdc++
+        # '-Wp,-D_GLIBCXX_DEBUG',
+        '-Wp,-D_GLIBCXX_ASSERTIONS',
+
+        # LLVM libc++
+        # '-Wp,-D_LIBCPP_ASSERT',
+        # '-Wp,-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_FAST',
+    ])
+endif
+
+# Warnings
+flags += cpp.get_supported_arguments([
+    '-Walloca',
+    '-Walloc-zero',
+    '-Warray-bounds=2',
+    '-Warray-compare',
+    '-Wattribute-alias=2',
+    '-Wbidi-chars=any',
+    '-Wcast-align',
+    '-Wcast-qual',
     '-Wchar-subscripts',
     '-Wcomment',
+    '-Wconversion',
+    '-Wdate-time',
     '-Wdisabled-optimization',
     '-Wdouble-promotion',
+    '-Wduplicated-branches',
+    '-Wduplicated-cond',
+    '-Wextra-semi',
     '-Wfloat-equal',
-    '-Wformat=2',
+    '-Wignored-qualifiers',
     '-Wimplicit-fallthrough',
     '-Wimport',
     '-Winit-self',
+    '-Wint-conversion',
     '-Wmissing-field-initializers',
     '-Wmissing-format-attribute',
     '-Wmissing-include-dirs',
     '-Wmissing-noreturn',
+    '-Wnon-virtual-dtor',
+    '-Wnull-dereference',
+    # '-Wold-style-cast',
+    '-Woverloaded-virtual',
     '-Wparentheses',
     '-Wpointer-arith',
     '-Wsequence-point',
     '-Wshadow',
     '-Wsign-compare',
+    '-Wsign-conversion',
     '-Wstack-protector',
     '-Wstrict-aliasing',
+    '-Wstring-compare',
+    # '-Wstringop-overflow=4',
     '-Wswitch',
-    '-Wswitch-default',
     '-Wswitch-enum',
+    '-Wtrampolines',
     '-Wtrigraphs',
     '-Wundef',
     '-Wuninitialized',
@@ -95,357 +163,174 @@ default_warning_flags = [
     '-Wunused',
     '-Wunused-function',
     '-Wunused-label',
-    '-Wunused-parameter',
-    '-Wunused-value',
-    '-Wunused-result',
-    '-Wunused-variable',
     '-Wunused-macros',
+    '-Wunused-parameter',
+    '-Wunused-result',
+    '-Wunused-value',
+    '-Wunused-variable',
     '-Wvariadic-macros',
     '-Wvla',
     '-Wwrite-strings',
-    '-Wignored-qualifiers',
-    '-Wstring-compare',
-    '-Walloca',
-    '-Wdate-time',
+    '-Wzero-length-bounds',
+])
 
-    # Disabled Warnings
-    '-Wno-format-nonliteral',
+# Disabled Warnings
+flags += cpp.get_supported_arguments([
+    '-Wno-double-promotion', # warns when using NAN
+])
 
-    # TODO
-    # '-Wcast-qual',
-    # '-Wconversion',
-    # '-Wint-conversion',
+# Disabled GCC Warnings
+if cpp.get_id() == 'gcc'
+    flags += cpp.get_supported_arguments([
+        '-Wno-changes-meaning',
+        '-Wno-shadow',  # gcc is a lot stricter than clang
+    ])
+endif
 
-    # TODO - fix these warnings
-    '-Wno-deprecated-declarations',
+# Disabled Clang Warnings
+if cpp.get_id() == 'clang'
+    flags += cpp.get_supported_arguments([
+        '-Wno-c2y-extensions', # doctest.h
+    ])
+endif
 
-    # Sanitizer
-    # '-fsanitize=undefined,address',
+# Linker
+
+link_flags = []
+link_flags += cpp.get_supported_link_arguments([
+    '-Wl,-O1',
+    '-Wl,--as-needed',
+    '-Wl,--sort-common',
+    '-Wl,-z,relro',
+    '-Wl,-z,now',
+    '-Wl,-z,pack-relative-relocs',
+    '-Wl,-z,noexecstack',
+    '-Wl,-z,defs',
+])
+
+add_project_arguments(flags, language: ['c', 'cpp'])
+add_project_link_arguments(link_flags, language: ['c', 'cpp'])
+
+## Dependencies
+
+cli11_dep = dependency('CLI11', include_type: 'system', required: true)
+libudev_dep = dependency('libudev', include_type: 'system', required: true)
+botan_dep = dependency('botan-3', include_type: 'system', required: true)
+pugixml_dep = dependency('pugixml', include_type: 'system', required: true)
+
+base_dependencies = [
+    cli11_dep,
+    pugixml_dep,
+    botan_dep,
 ]
 
-flags += cpp.get_supported_arguments(default_warning_flags)
+gtkmm_dep = dependency('gtkmm-4.0', include_type: 'system', required: true, version: '>=4.18.0')
+glibmm_dep = dependency('glibmm-2.68', include_type: 'system', required: true)
+giomm_dep = dependency('giomm-2.68', include_type: 'system', required: true)
+sigc_dep = dependency('sigc++-3.0', include_type: 'system', required: true)
+glycin_dep = dependency('glycin-gtk4-2', include_type: 'system', required: true)
 
-if cpp.has_multi_arguments('-Wformat', '-Werror=format-security')
-    flags += '-Werror=format-security'
-endif
-
-# GCC only warning flags
-if cpp.get_id() == 'gcc'
-    default_warning_flags_gcc = [
-        '-Wformat-overflow=2',
-        '-Wformat-truncation',
-        '-Warray-bounds=2',
-        '-Warray-compare',
-        '-Wzero-length-bounds',
-        '-Wattribute-alias=2',
-        '-Wduplicated-branches',
-        '-Wduplicated-cond',
-        '-Wtrampolines',
-        '-Walloc-zero',
-        '-Wstringop-overflow=4',
-
-        # '-Weffc++',
-
-        # Disabled Warnings
-        '-Wno-array-bounds',
-        '-Wno-stringop-overflow',
-        '-Wno-switch-default',
-        '-Wno-shadow',
-        '-Wno-maybe-uninitialized',
-        '-Wno-unused-result',
-        '-Wno-cast-function-type',
-    ]
-
-    flags += cpp.get_supported_arguments(default_warning_flags_gcc)
-endif
-
-# Clang only warning flags
-if cpp.get_id() == 'clang'
-    default_warning_flags_clang = [
-        # Disabled Warnings
-    ]
-
-    flags += cpp.get_supported_arguments(default_warning_flags_clang)
-endif
-
-if cpp.has_link_argument('-Wl,--as-needed')
-    link_flags += '-Wl,--as-needed'
-endif
-
-noexecstack = false
-if cpp.has_link_argument('-Wl,-z,noexecstack')
-    link_flags += '-Wl,-z,noexecstack'
-    noexecstack = true
-endif
-
-add_global_arguments(flags, language: ['c', 'cpp'])
-add_global_link_arguments(link_flags, language: ['c', 'cpp'])
-
-## dependencies
-
-# ztd use system or subproject
-ztd_dep = dependency('ztd', required : false)
-if not ztd_dep.found() # using subproject
-  ztd_proj = subproject('ztd', required : true)
-  ztd_dep = ztd_proj.get_variable('ztd_dep')
-endif
-
-# magic_enum use system or subproject
-magic_enum_dep = dependency('magic_enum', required : false)
-if not magic_enum_dep.found() # using subproject
-  magic_enum_proj = subproject('magic_enum', required : true)
-  magic_enum_dep = magic_enum_proj.get_variable('magic_enum_dep')
-endif
-
-# toml11 use system or subproject
-toml11_dep = dependency('toml11', required : false)
-if not toml11_dep.found() # using subproject
-  cmake = import('cmake')
-  toml11_proj = cmake.subproject('toml11', required : true)
-  toml11_dep = toml11_proj.dependency('toml11')
-endif
-
-libudev_dep = dependency('libudev', required : true)
-libffmpegthumbnailer_dep = dependency('libffmpegthumbnailer', required : true)
-openssl_dep = dependency('openssl', required : true)
-
-exo_dep = dependency('exo-2', required : true)
-# x11_dep = dependency('x11', required : true)
-spdlog_dep = dependency('spdlog', required : true)
-fmt_dep = dependency('fmt', required : true)
-sigc_dep = dependency('sigc++-3.0', required : true)
-pugixml_dep = dependency('pugixml', required : true)
-nlohmann_json_dep = dependency('nlohmann_json', required : true)
-cli11_dep = dependency('CLI11', required : true)
-
-# zmqpp does not provide a pkgconfig file
-libzmq_dep = dependency('libzmq', required : true)
-libzmqpp_dep = cc.find_library('zmqpp', has_headers: ['zmqpp/zmqpp.hpp'], required: true)
-
-#gtk_dep = dependency('gtk4', required : true)
-gtk_dep = dependency('gtk+-3.0', required : true)
-glib_dep = dependency('glib-2.0', required : true)
-
-#gtkmm_dep = dependency('gtkmm-4.0', required : true)
-glibmm_dep = dependency('glibmm-2.68', required : true)
-giomm_dep = dependency('giomm-2.68', required : true)
-
-dependencies = [
+gtk_dependencies = [
+    gtkmm_dep,
     glibmm_dep,
     giomm_dep,
-
-    glib_dep,
-    gtk_dep,
-
-    # x11_dep,
-    exo_dep,
-
-    magic_enum_dep,
-    toml11_dep,
-
-    spdlog_dep,
-    fmt_dep,
     sigc_dep,
-    pugixml_dep,
-    nlohmann_json_dep,
-    cli11_dep,
-
-    libzmq_dep,
-    libzmqpp_dep,
-
-    libudev_dep,
-    libffmpegthumbnailer_dep,
-    openssl_dep,
-
-    ztd_dep,
+    glycin_dep,
 ]
 
-## preprocessor static
+if get_option('with-system-glaze')
+    base_dependencies += dependency('glaze', include_type: 'system', required: true, version: '>=6.3.0')
+else
+    incdir += include_directories('subprojects/glaze/include')
+endif
+
+if get_option('with-system-ztd')
+    base_dependencies += dependency('ztd', required: true)
+else
+    ztd_proj = subproject('ztd', required: true)
+    base_dependencies += ztd_proj.get_variable('ztd_dep')
+endif
+
+## Preprocessor / Features
 
 preprocessor = [
     '-DPACKAGE_NAME="spacefm"',
     '-DPACKAGE_NAME_FANCY="SpaceFM"',
     '-DPACKAGE_VERSION="@0@"'.format(meson.project_version()),
-    '-DPACKAGE_BUGREPORT="TODO"',
+    '-DPACKAGE_GITHUB="https://www.github.com/thermitegod/spacefm"',
+    '-DPACKAGE_BUGREPORT="https://www.github.com/thermitegod/spacefm/issues"',
     '-DPACKAGE_ONLINE_DOCS="TODO"',
 
-    '-DFISH_PATH="@0@"'.format(fish.full_path()),
+    # data paths
+    '-DPACKAGE_IMAGES="@0@"'.format(datadir / 'spacefm' / 'images'),
+    '-DPACKAGE_IMAGES_LOCAL="@0@"'.format(meson.current_source_dir() / 'share/spacefm/images'),
 
-    '-DG_DISABLE_ASSERT',
-    '-DG_DISABLE_CAST_CHECKS',
-    '-DG_DISABLE_CHECKS',
-    '-DG_LOG_DOMAIN="SpaceFM"',
-    #'-DG_DEBUG=fatal_warnings',
-
-    '-DMAGIC_ENUM_RANGE_MIN=0',
-    '-DMAGIC_ENUM_RANGE_MAX=2000',
-    # '-DMAGIC_ENUM_RANGE_MAX=32767',
-
-    '-DZMQ_PORT=59172',
-
-    '-DLIBDIR_PATH="@0@"'.format(libdir),
-
-    '-DGTK_DISABLE_DEPRECATED',
-    '-DGDK_DISABLE_DEPRECATED',
-
-    '-DGTKMM_DISABLE_DEPRECATED',
-    '-DGDKMM_DISABLE_DEPRECATED',
-    '-DGLIBMM_DISABLE_DEPRECATED',
-    '-DGIOMM_DISABLE_DEPRECATED',
-
-    # '-DZTD_LOGGER_USE_STD_FORMAT',
-    '-DZTD_DISABLE_GLOBAL_LOG_MACROS',
-    ]
-
-foreach a : preprocessor
-    add_project_arguments(a, language : ['c', 'cpp'])
-endforeach
-
-## preprocessor features
-features = []
-
-if get_option('deprecated')
-    features += '-DHAVE_DEPRECATED'
-endif
-
-if get_option('deprecated-ini-loading')
-  features += '-DHAVE_DEPRECATED_INI_CONFIG_LOADING'
-endif
-
-if get_option('nonlatin')
-  features += '-DHAVE_NONLATIN_KEYBOARD_SUPPORT'
-endif
-
-foreach a : features
-    add_project_arguments(a, language : ['c', 'cpp'])
-endforeach
-
-## data paths
-
-data_args = [
-    '-DDATADIR="/usr/share"',
-    '-DSYSCONFDIR="/etc"',
-    '-DPACKAGE_SCRIPTS_PATH="/usr/share/spacefm/scripts"',
-    '-DFISH_FMLIB="/usr/share/spacefm/lib/fmlib.fish"',
+    # test data
+    '-DTEST_DATA_PATH="@0@"'.format(meson.current_source_dir() / 'tests/test_data'),
 ]
 
-foreach a : data_args
-  add_project_arguments(a, language : ['c', 'cpp'])
-endforeach
+if get_option('dev')
+    preprocessor += [
+        # GTKMM
+        '-DGTKMM_DISABLE_DEPRECATED',
+        '-DGDKMM_DISABLE_DEPRECATED',
+        '-DGLIBMM_DISABLE_DEPRECATED',
+        '-DGIOMM_DISABLE_DEPRECATED',
+    ]
+endif
 
-## Source files
+if get_option('dev')
+    preprocessor += '-DDEV_MODE'
+endif
 
-sources = files(
-    'src/about.cxx',
-    'src/autosave.cxx',
-    'src/bookmarks.cxx',
-    'src/file-search.cxx',
-    'src/ipc.cxx',
-    'src/item-prop.cxx',
-    'src/main.cxx',
-    'src/main-window.cxx',
-    'src/preference-dialog.cxx',
-    'src/program-timer.cxx',
-    'src/scripts.cxx',
-    'src/settings.cxx',
-    'src/single-instance.cxx',
-    'src/terminal-handlers.cxx',
-    'src/type-conversion.cxx',
-    'src/types.cxx',
-    'src/utils.cxx',
-    'src/window-reference.cxx',
+if get_option('deprecated')
+    preprocessor += '-DHAVE_DEPRECATED'
+endif
 
-    'src/commandline/commandline.cxx',
-    'src/commandline/socket.cxx',
-    'src/commandline/socket/subcommands.cxx',
-    'src/commandline/socket/get/subcommands.cxx',
-    'src/commandline/socket/get-task/subcommands.cxx',
-    'src/commandline/socket/run-task/subcommands.cxx',
-    'src/commandline/socket/set/subcommands.cxx',
-    'src/commandline/socket/set-task/subcommands.cxx',
+media_dependencies = []
+if get_option('media')
+    # ffmpeg
+    libavcodec_dep = dependency('libavcodec', include_type: 'system', required: true)
+    # libavdevice_dep = dependency('libavdevice', include_type: 'system', required: true)
+    # libavfilter_dep = dependency('libavfilter', include_type: 'system', required: true)
+    libavformat_dep = dependency('libavformat', include_type: 'system', required: true)
+    libavutil_dep = dependency('libavutil', include_type: 'system', required: true)
+    # libswresample_dep = dependency('libswresample', include_type: 'system', required: true)
+    # libswscale_dep = dependency('libswscale', include_type: 'system', required: true)
 
-    'src/xset/xset.cxx',
-    'src/xset/xset-context.cxx',
-    'src/xset/xset-custom.cxx',
-    'src/xset/xset-defaults.cxx',
-    'src/xset/xset-design.cxx',
-    'src/xset/xset-design-clipboard.cxx',
-    'src/xset/xset-dialog.cxx',
-    'src/xset/xset-event-handler.cxx',
-    'src/xset/xset-keyboard.cxx',
-    'src/xset/xset-lookup.cxx',
+    gexiv_dep = dependency('gexiv2', include_type: 'system', required: true)
 
-    'src/settings/app.cxx',
-    'src/settings/config-load.cxx',
-    'src/settings/config-save.cxx',
+    media_dependencies += [
+        libavcodec_dep,
+        # libavdevice_dep,
+        # libavfilter_dep,
+        libavformat_dep,
+        libavutil_dep,
+        # libswresample_dep,
+        # libswscale_dep,
+        gexiv_dep,
+    ]
 
-    'src/settings/upgrade/config-upgrade.cxx',
+    preprocessor += '-DHAVE_MEDIA'
+endif
 
-    'src/mime-type/mime-action.cxx',
-    'src/mime-type/mime-cache.cxx',
-    'src/mime-type/mime-type.cxx',
+add_project_arguments(preprocessor, language: ['c', 'cpp'])
 
-    'src/ptk/ptk-app-chooser.cxx',
-    'src/ptk/ptk-bookmark-view.cxx',
-    'src/ptk/ptk-clipboard.cxx',
-    'src/ptk/ptk-dialog.cxx',
-    'src/ptk/ptk-dir-tree.cxx',
-    'src/ptk/ptk-dir-tree-view.cxx',
-    'src/ptk/ptk-file-actions-misc.cxx',
-    'src/ptk/ptk-file-actions-open.cxx',
-    'src/ptk/ptk-file-actions-rename.cxx',
-    'src/ptk/ptk-file-archiver.cxx',
-    'src/ptk/ptk-file-browser.cxx',
-    'src/ptk/ptk-file-list.cxx',
-    'src/ptk/ptk-file-menu.cxx',
-    'src/ptk/ptk-file-properties.cxx',
-    'src/ptk/ptk-file-task.cxx',
-    'src/ptk/ptk-handler.cxx',
-    'src/ptk/ptk-keyboard.cxx',
-    'src/ptk/ptk-location-view.cxx',
-    'src/ptk/ptk-path-entry.cxx',
+## Build
 
-    'src/vfs/vfs-app-desktop.cxx',
-    'src/vfs/vfs-async-task.cxx',
-    'src/vfs/vfs-device.cxx',
-    'src/vfs/vfs-dir.cxx',
-    'src/vfs/vfs-file-info.cxx',
-    'src/vfs/vfs-file-monitor.cxx',
-    'src/vfs/vfs-file-task.cxx',
-    'src/vfs/vfs-file-trash.cxx',
-    'src/vfs/vfs-mime-type.cxx',
-    'src/vfs/vfs-mime-monitor.cxx',
-    'src/vfs/vfs-thumbnail-loader.cxx',
-    'src/vfs/vfs-time.cxx',
-    'src/vfs/vfs-user-dirs.cxx',
-    'src/vfs/vfs-utils.cxx',
-    'src/vfs/vfs-volume.cxx',
+subdir('src/core')
+subdir('src/spacefm')
 
-    'src/vfs/libudevpp/udev.cxx',
-    'src/vfs/libudevpp/udev_device.cxx',
-    'src/vfs/libudevpp/udev_enumerate.cxx',
-    'src/vfs/libudevpp/udev_monitor.cxx',
+if get_option('tests')
+    subdir('tests')
+endif
 
-    'src/vfs/linux/procfs.cxx',
-    'src/vfs/linux/sysfs.cxx',
-)
-
-target_name = 'spacefm'
-target_type = 'executable'
-
-spacefm = build_target(
-    target_name,
-    sources,
-    target_type: target_type,
-    include_directories: incdir,
-    install : true,
-    install_dir : bindir,
-    dependencies: dependencies,
-    cpp_pch: 'pch/cxx_pch.hxx',
-)
+if get_option('tools')
+    subdir('tools')
+endif
 
 ## Install
 
-install_subdir('data/applications', install_dir : datadir)
-install_subdir('data/icons', install_dir : datadir)
-install_subdir('data/scripts', install_dir : datadir / target_name)
+install_subdir('share/applications', install_dir: datadir)
+install_subdir('share/icons', install_dir: datadir)
+install_subdir('share/spacefm', install_dir: datadir)

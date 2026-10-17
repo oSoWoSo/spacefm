@@ -1,0 +1,572 @@
+/**
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#include <array>
+#include <filesystem>
+#include <memory>
+#include <ranges>
+#include <utility>
+
+#include <gdkmm.h>
+#include <glibmm.h>
+#include <gtkmm.h>
+#include <sigc++/sigc++.h>
+
+#include <ztd/ztd.hxx>
+
+#include "settings/settings.hxx"
+
+#include "gui/browser.hxx"
+
+#include "vfs/task-manager.hxx"
+#include "vfs/user-dirs.hxx"
+#include "vfs/volume-manager.hxx"
+
+#include "logger.hxx"
+
+gui::browser::browser(Gtk::ApplicationWindow& parent, const std::uint32_t window_id,
+                      const config::panel_id panel_id,
+                      const std::shared_ptr<vfs::volume_manager>& volume_manager,
+                      const std::shared_ptr<vfs::task_manager>& task_manager,
+                      const std::shared_ptr<config::settings>& settings)
+    : parent_(parent), window_id_(window_id), panel_id_(panel_id), volume_manager_(volume_manager),
+      task_manager_(task_manager), settings_(settings)
+{
+    logger::debug("gui::browser::browser({},{})", window_id, std::to_underlying(panel_id_));
+
+    action_group_ = Gio::SimpleActionGroup::create();
+    action_close_ = action_group_->add_action("close", [this]() { close_tab(); });
+    action_restore_ = action_group_->add_action("restore", [this]() { restore_tab(); });
+    action_restore_->set_enabled(false);
+    action_tab_ = action_group_->add_action(
+        "new_tab",
+        [this]() { new_tab(vfs::user::home(), settings_->behavior.switch_to_new_tabs); });
+    action_tab_here_ = action_group_->add_action("new_tab_here", [this]() { new_tab_here(); });
+    insert_action_group("browser", action_group_);
+
+    set_group_name("browser-group");
+
+    signal_unrealize().connect(
+        [this]()
+        {
+            save_tab_state();
+            // do not want the tab state to get updated during browser shutdown
+            enable_state_ = false;
+
+            signal_page_added_.disconnect();
+            signal_page_removed_.disconnect();
+            signal_page_reordered_.disconnect();
+            signal_switch_page_.disconnect();
+        });
+
+    add_shortcuts();
+    set_visible(true);
+
+    // load saved tabs, do this before connecting to notebook signals
+    const auto panel_state = settings_->windows[window_id_].panels[panel_id_];
+    for (const auto [idx, state] : std::views::enumerate(panel_state.tabs))
+    {
+        try
+        {
+            if (std::filesystem::exists(state.path))
+            {
+                // logger::info("set active {}, {}", idx, get_n_pages() == panel_state.active_tab);
+                new_tab(state, get_n_pages() == panel_state.active_tab);
+            }
+        }
+        catch (const std::filesystem::filesystem_error& e)
+        {
+            logger::error<logger::gui>("{}", e.what());
+        }
+    }
+
+    if (get_n_pages() == 0)
+    {
+        new_tab(vfs::user::home());
+    }
+
+    signal_page_added_ = signal_page_added().connect(
+        [this](auto, auto)
+        { //
+            save_tab_state();
+        });
+    signal_page_removed_ = signal_page_removed().connect(
+        [this](auto, auto)
+        { //
+            save_tab_state();
+        });
+    signal_page_reordered_ = signal_page_reordered().connect(
+        [this](auto, auto)
+        { //
+            save_tab_state();
+        });
+    signal_switch_page_ = signal_switch_page().connect(
+        [this](auto* page, auto)
+        { //
+            save_tab_state();
+
+            if (auto* tab = dynamic_cast<gui::tab*>(page))
+            {
+                Glib::signal_idle().connect_once([tab]() { tab->files_grab_focus(); },
+                                                 Glib::PRIORITY_DEFAULT);
+            }
+        });
+
+    volume_manager_->signal_mounted().connect(
+        [this](const auto& path)
+        {
+            if (settings_->general.auto_open_mounted_volumes)
+            { // TODO need to only open in active browser, not all browsers
+                new_tab(path, settings_->behavior.switch_to_new_tabs);
+            }
+        });
+
+    // need to do it this way to stop every loaded tabs signal_chdir_after() from causing unneeded save requests
+    Glib::signal_idle().connect_once([this]() { enable_state_ = true; }, Glib::PRIORITY_DEFAULT);
+}
+
+gui::browser::~browser()
+{
+    logger::debug("gui::browser::~browser({})", std::to_underlying(panel_id_));
+}
+
+void
+gui::browser::add_shortcuts() noexcept
+{
+    auto controller = Gtk::ShortcutController::create();
+
+    { // Open Tab
+        auto trigger = Gtk::KeyvalTrigger::create(GDK_KEY_T, Gdk::ModifierType::CONTROL_MASK);
+        auto action = Gtk::CallbackAction::create(
+            [this](Gtk::Widget&, const Glib::VariantBase&)
+            {
+                if (settings_->interface.new_tab_here)
+                {
+                    new_tab_here();
+                }
+                else
+                {
+                    new_tab(vfs::user::home(), settings_->behavior.switch_to_new_tabs);
+                }
+                set_current_page(get_n_pages() - 1);
+                return true;
+            });
+        auto shortcut = Gtk::Shortcut::create(trigger, action);
+        controller->add_shortcut(shortcut);
+    }
+
+    { // Restore Tab
+        auto trigger = Gtk::KeyvalTrigger::create(GDK_KEY_T,
+                                                  Gdk::ModifierType::CONTROL_MASK |
+                                                      Gdk::ModifierType::SHIFT_MASK);
+        auto action = Gtk::CallbackAction::create(
+            [this](Gtk::Widget&, const Glib::VariantBase&)
+            {
+                restore_tab();
+                set_current_page(get_n_pages() - 1);
+                return true;
+            });
+
+        controller->add_shortcut(Gtk::Shortcut::create(trigger, action));
+    }
+
+    { // Close Tab
+        auto trigger = Gtk::KeyvalTrigger::create(GDK_KEY_w, Gdk::ModifierType::CONTROL_MASK);
+        auto action = Gtk::CallbackAction::create(
+            [this](Gtk::Widget&, const Glib::VariantBase&)
+            {
+                close_tab();
+                return true;
+            });
+        auto shortcut = Gtk::Shortcut::create(trigger, action);
+        controller->add_shortcut(shortcut);
+    }
+
+    { // Next Tab
+        auto trigger = Gtk::KeyvalTrigger::create(GDK_KEY_Tab, Gdk::ModifierType::CONTROL_MASK);
+        auto action = Gtk::CallbackAction::create(
+            [this](Gtk::Widget&, const Glib::VariantBase&)
+            {
+                next_page();
+                return true;
+            });
+        auto shortcut = Gtk::Shortcut::create(trigger, action);
+        controller->add_shortcut(shortcut);
+    }
+
+    { // Previous Tab
+        auto trigger = Gtk::KeyvalTrigger::create(GDK_KEY_Tab,
+                                                  Gdk::ModifierType::CONTROL_MASK |
+                                                      Gdk::ModifierType::SHIFT_MASK);
+        auto action = Gtk::CallbackAction::create(
+            [this](Gtk::Widget&, const Glib::VariantBase&)
+            {
+                prev_page();
+                return true;
+            });
+        auto shortcut = Gtk::Shortcut::create(trigger, action);
+        controller->add_shortcut(shortcut);
+    }
+
+    { // First Tab
+        auto trigger = Gtk::KeyvalTrigger::create(GDK_KEY_Home, Gdk::ModifierType::CONTROL_MASK);
+        auto action = Gtk::CallbackAction::create(
+            [this](Gtk::Widget&, const Glib::VariantBase&)
+            {
+                set_current_page(0);
+                return true;
+            });
+        auto shortcut = Gtk::Shortcut::create(trigger, action);
+        controller->add_shortcut(shortcut);
+    }
+
+    { // Last Tab
+        auto trigger = Gtk::KeyvalTrigger::create(GDK_KEY_End, Gdk::ModifierType::CONTROL_MASK);
+        auto action = Gtk::CallbackAction::create(
+            [this](Gtk::Widget&, const Glib::VariantBase&)
+            {
+                set_current_page(get_n_pages() - 1);
+                return true;
+            });
+        auto shortcut = Gtk::Shortcut::create(trigger, action);
+        controller->add_shortcut(shortcut);
+    }
+
+    { // Switch Tab
+        constexpr std::array<std::uint32_t, 10> keys{
+            GDK_KEY_1,
+            GDK_KEY_2,
+            GDK_KEY_3,
+            GDK_KEY_4,
+            GDK_KEY_5,
+            GDK_KEY_6,
+            GDK_KEY_7,
+            GDK_KEY_8,
+            GDK_KEY_9,
+            GDK_KEY_0,
+        };
+        for (const auto [idx, key] : std::views::enumerate(keys))
+        {
+            auto trigger = Gtk::KeyvalTrigger::create(key, Gdk::ModifierType::ALT_MASK);
+
+            auto action = Gtk::CallbackAction::create(
+                [this, idx](Gtk::Widget&, const Glib::VariantBase&)
+                {
+                    set_current_page(static_cast<std::int32_t>(idx));
+                    return true;
+                });
+
+            controller->add_shortcut(Gtk::Shortcut::create(trigger, action));
+        }
+    }
+
+    add_controller(controller);
+}
+
+gui::tab*
+gui::browser::get_tab(const std::int32_t page) noexcept
+{
+    auto* tab = dynamic_cast<gui::tab*>(get_nth_page(page));
+
+    return tab;
+}
+
+gui::tab*
+gui::browser::current_tab() noexcept
+{
+    return get_tab(get_current_page());
+}
+
+bool
+gui::browser::set_active_tab(std::int32_t tab) noexcept
+{
+    const auto pages = get_n_pages();
+    if (tab > pages)
+    {
+        return false;
+    }
+    set_current_page(tab);
+    return true;
+}
+
+std::string
+gui::browser::display_filename(const std::filesystem::path& path) noexcept
+{
+    if (path == "/")
+    {
+        // special case, using std::filesystem::path::filename() on the root
+        // directory returns an empty string.
+        return "/";
+    }
+    else
+    {
+        if (path.has_filename())
+        {
+            return path.filename().string();
+        }
+        return path.string();
+    }
+}
+
+void
+gui::browser::new_tab(const std::filesystem::path& path, const bool set_active) noexcept
+{
+    new_tab(
+        {
+            .path = path,
+            .sorting = settings_->defaults.sorting,
+            .view = settings_->defaults.view,
+            .grid = settings_->defaults.grid,
+            .list = settings_->defaults.list,
+        },
+        set_active);
+}
+
+void
+gui::browser::new_tab(const config::tab_state& state, const bool set_active) noexcept
+{
+    auto* label = Gtk::make_managed<Gtk::Label>();
+    label->set_label(display_filename(state.path));
+
+    auto* tab = Gtk::make_managed<gui::tab>(parent_, state, task_manager_, settings_);
+    tab->signal_state_changed().connect(
+        [this]()
+        { //
+            save_tab_state();
+        });
+    tab->signal_chdir_before().connect(
+        [this]()
+        { //
+            /* TODO */
+        });
+    tab->signal_chdir_begin().connect(
+        [this, tab, label]()
+        { //
+            label->set_label(display_filename(tab->cwd()));
+            label->set_tooltip_text(std::format("{}", tab->cwd()));
+        });
+    tab->signal_chdir_after().connect(
+        [this]()
+        { //
+            save_tab_state();
+        });
+    tab->signal_close_tab().connect(
+        [this]()
+        { //
+            close_tab();
+        });
+    tab->signal_new_tab().connect(
+        [this](const std::filesystem::path& path)
+        { //
+            new_tab(path, settings_->behavior.switch_to_new_tabs);
+        });
+    tab->signal_paste_in_tab().connect(
+        [this](std::int32_t tab)
+        {
+            if (tab >= get_n_pages())
+            {
+                auto alert = Gtk::AlertDialog::create("Paste in Tab Failed");
+                alert->set_detail(std::format("Tab '{}' is not open", tab));
+                alert->set_modal(true);
+                alert->show(parent_);
+                return;
+            }
+            if (tab == get_current_page())
+            {
+                auto alert = Gtk::AlertDialog::create("Paste in Tab Failed");
+                alert->set_detail("Cannot paste into the current tab");
+                alert->set_modal(true);
+                alert->show(parent_);
+                return;
+            }
+
+            get_tab(tab)->on_paste();
+        });
+    tab->signal_paste_in_panel().connect(
+        [this](const config::panel_id panel)
+        {
+            if (panel == panel_id_)
+            {
+                auto alert = Gtk::AlertDialog::create("Paste in Panel Failed");
+                alert->set_detail("Cannot paste into the current panel");
+                alert->set_modal(true);
+                alert->show(parent_);
+                return;
+            }
+            signal_paste_in_panel().emit(panel);
+        });
+    tab->signal_open_in_tab().connect(
+        [this](std::int32_t tab, const std::filesystem::path& path)
+        {
+            if (tab >= get_n_pages())
+            {
+                auto alert = Gtk::AlertDialog::create("Open Path in Tab Failed");
+                alert->set_detail(std::format("Tab '{}' is not open", tab));
+                alert->set_modal(true);
+                alert->show(parent_);
+                return;
+            }
+            get_tab(tab)->chdir(path);
+        });
+    tab->signal_new_tab_in_panel().connect(
+        [this](const config::panel_id panel, const std::filesystem::path& path)
+        { //
+            signal_new_tab_in_panel().emit(panel, path);
+        });
+
+    auto menu = Gio::Menu::create();
+    Glib::RefPtr<Gio::MenuItem> item;
+
+    item = Gio::MenuItem::create("Close", "browser.close");
+    item->set_attribute_value("accel", Glib::Variant<Glib::ustring>::create("<Control>W"));
+    menu->append_item(item);
+
+    item = Gio::MenuItem::create("Restore", "browser.restore");
+    item->set_attribute_value("accel", Glib::Variant<Glib::ustring>::create("<Shift><Control>T"));
+    menu->append_item(item);
+
+    if (settings_->interface.new_tab_here)
+    {
+        menu->append("Tab", "browser.new_tab");
+
+        item = Gio::MenuItem::create("Tab Here", "browser.new_tab_here");
+        item->set_attribute_value("accel", Glib::Variant<Glib::ustring>::create("<Control>T"));
+        menu->append_item(item);
+    }
+    else
+    {
+        item = Gio::MenuItem::create("Tab", "browser.new_tab");
+        item->set_attribute_value("accel", Glib::Variant<Glib::ustring>::create("<Control>T"));
+        menu->append_item(item);
+
+        menu->append("Tab Here", "browser.new_tab_here");
+    }
+
+    auto* popover = Gtk::make_managed<Gtk::PopoverMenu>(menu);
+    popover->set_parent(*label);
+    popover->set_has_arrow(false);
+    popover->set_flags(Gtk::PopoverMenu::Flags::NESTED);
+
+    auto gesture = Gtk::GestureClick::create();
+    gesture->set_button(GDK_BUTTON_SECONDARY);
+    gesture->signal_pressed().connect(
+        [this, tab, popover](std::int32_t, double x, double y)
+        {
+            context_menu_tab_ = tab;
+            action_restore_->set_enabled(!restore_tabs_.empty());
+
+            popover->set_pointing_to(
+                Gdk::Rectangle{static_cast<std::int32_t>(x), static_cast<std::int32_t>(y), 0, 0});
+            popover->popup();
+        });
+    label->add_controller(gesture);
+
+    auto tab_idx = append_page(*tab, *label);
+    set_tab_reorderable(*tab, true);
+    set_tab_detachable(*tab, true);
+
+    if (set_active)
+    {
+        set_current_page(tab_idx);
+    }
+}
+
+void
+gui::browser::new_tab_here() noexcept
+{
+    auto* tab = context_menu_tab_ ? context_menu_tab_ : current_tab();
+    context_menu_tab_ = nullptr;
+
+    if (tab)
+    {
+        new_tab(tab->cwd(), settings_->behavior.switch_to_new_tabs);
+    }
+}
+
+void
+gui::browser::close_tab() noexcept
+{
+    auto* tab = context_menu_tab_ ? context_menu_tab_ : current_tab();
+    context_menu_tab_ = nullptr;
+
+    if (!tab)
+    {
+        return;
+    }
+
+    restore_tabs_.push(tab->get_tab_state());
+
+    const auto page = page_num(*tab);
+    if (page == -1)
+    {
+        return;
+    }
+
+    if (get_n_pages() == 1)
+    {
+        tab->chdir(vfs::user::home());
+    }
+    else
+    {
+        remove_page(page);
+    }
+}
+
+void
+gui::browser::restore_tab() noexcept
+{
+    if (!restore_tabs_.empty())
+    {
+        const auto state = restore_tabs_.back();
+        restore_tabs_.pop();
+
+        new_tab(state, settings_->behavior.switch_to_restored_tabs);
+    }
+}
+
+void
+gui::browser::open_in_tab(const std::filesystem::path& path, std::int32_t tab) noexcept
+{
+    const auto switched = set_active_tab(tab);
+    if (switched)
+    {
+        current_tab()->chdir(path);
+    }
+}
+
+void
+gui::browser::save_tab_state() noexcept
+{
+    if (!enable_state_)
+    {
+        return;
+    }
+
+    const auto n_tabs = get_n_pages();
+    const auto current_page = get_current_page();
+
+    std::vector<config::tab_state> tabs;
+    tabs.reserve(static_cast<std::size_t>(n_tabs));
+
+    for (const auto i : std::views::iota(0, n_tabs))
+    {
+        auto* tab = get_tab(i);
+        tabs.push_back(tab->get_tab_state());
+    }
+
+    settings_->windows[window_id_].panels[panel_id_].tabs = tabs;
+    settings_->windows[window_id_].panels[panel_id_].active_tab = current_page;
+    settings_->signal_autosave_request().emit();
+}
